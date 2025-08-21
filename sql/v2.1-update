@@ -1,0 +1,7 @@
+CREATE TABLE `cannal_inscricoes`.`alunos_operadoras_meta` (`aop_id` INT NOT NULL AUTO_INCREMENT , `aop_aluno` INT NOT NULL , `aop_operadora` VARCHAR(32) NOT NULL , `aop_key` VARCHAR(32) NOT NULL , `aop_value` TEXT NOT NULL, `aop_environment` VARCHAR(32) NOT NULL , PRIMARY KEY (`aop_id`)) ENGINE = InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE `alunos_operadoras_meta` ADD CONSTRAINT `aop_operadora` FOREIGN KEY (`aop_operadora`) REFERENCES `operadoras`(`opr_nome`) ON DELETE CASCADE ON UPDATE CASCADE; ALTER TABLE `alunos_operadoras_meta` ADD CONSTRAINT `op_aluno` FOREIGN KEY (`aop_aluno`) REFERENCES `alunos`(`alu_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `cannal_inscricoes`.`alunos_operadoras_meta` ADD UNIQUE `aop_alu_opr_key_env` (`aop_aluno`, `aop_operadora`, `aop_key`, `aop_environment`) USING BTREE;
+INSERT INTO `alunos_operadoras_meta`(`aop_aluno`, `aop_operadora`, `aop_key`, `aop_value`, `aop_environment`) SELECT alu_id, 'pagarme_cannal', 'id', alu_pagarmeId, 'PRODUCTION' FROM alunos WHERE alu_pagarmeId IS NOT NULL AND alu_pagarmeId <> '';
+INSERT INTO `alunos_operadoras_meta`(`aop_aluno`, `aop_operadora`, `aop_key`, `aop_value`, `aop_environment`) VALUES (117, 'pagarme_cannal','id','cus_ng02p5i8pCVKNR3K','DEVELOPMENT');
+ALTER TABLE `grupos` ADD `grp_pixel` VARCHAR(32) NULL AFTER `grp_operadora`, ADD `grp_analytics` VARCHAR(32) NULL AFTER `grp_pixel`;
+UPDATE grupos SET grp_analytics = 'G-2P4WY11RY0', grp_pixel = '2242477532594552';

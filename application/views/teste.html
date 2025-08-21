@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Atualizar Aba Externa</title>
+</head>
+<body>
+  <button onclick="abrirWpp('https://wa.me/5511999999999?text=Olá')">Abrir WhatsApp com "Olá"</button>
+  <button onclick="abrirWpp('https://wa.me/5511999999999?text=Quero+infos')">Abrir WhatsApp com "Quero infos"</button>
+
+  <script>
+    let janelaWpp = null;
+
+    function abrirWpp(url) {
+      // Se não há aba aberta ou ela foi fechada, abre uma nova
+      if (!janelaWpp || janelaWpp.closed) {
+        janelaWpp = window.open(url, 'cannalInscricoesWPP');
+      } else {
+        // Se já está aberta, apenas atualiza a URL
+        janelaWpp.location.href = url;
+        janelaWpp.focus();
+      }
+    }
+  </script>
+</body>
+</html>

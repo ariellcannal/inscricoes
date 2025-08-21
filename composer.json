@@ -1,0 +1,33 @@
+{
+	"name" : "ariellcannal/inscricoes",
+	"type" : "project",
+	"homepage" : "https://inscricoes.cannal.com.br",
+	"license" : "MIT",
+	"require" : {
+		"php" : ">=8.0.0",
+		"dompdf/dompdf" : "~2.0",
+		"phpmailer/phpmailer" : "~6.9",
+		"guzzlehttp/guzzle" : "~7.8",
+		"aws/aws-sdk-php" : "~3.314",
+		"pagarme/pagarme-php-sdk" : "~6.8",
+		"ariellcannal/pagamentos" : "master",
+		"ariellcannal/logs" : "master"
+	},
+	"repositories" : [{
+			"type" : "git",
+			"url" : "git@github.com:ariellcannal/pagamentos.git",
+			"name" : "pagamentos"
+		}, {
+			"type" : "git",
+			"url" : "git@github.com:ariellcannal/logs.git",
+			"name" : "logs"
+		}
+	],
+	"autoload" : {
+		"psr-4" : {
+			"CANNALInscricoes\\Entities\\" : "application/entities/"
+		}
+	},
+	"minimum-stability" : "dev",
+	"prefer-stable" : true
+}

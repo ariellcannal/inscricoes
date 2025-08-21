@@ -1,0 +1,22 @@
+{
+  "name": "CANNAL Inscrições",
+  "short_name": "Inscrições",
+  "start_url": "/",
+  "background_color": "#f8f8f7",
+  "theme_color": "#084c6e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/writable/logos/CANNAL_SIMB_POS.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/writable/logos/CANNAL_SIMB_POS.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "scope": "/"
+}

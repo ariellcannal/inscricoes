@@ -1,0 +1,14 @@
+SetEnv CI_ENV development
+
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+RewriteCond %{SERVER_PORT} 80
+RewriteRule ^(.*)$ https://grupos.grupotapa.com.br/$1 [R,L]
+
+RewriteRule ^assets/img/logo_preto.png$   /writable/logos/CANNAL_POS_SM.png [L]
+RewriteRule ^assets/img/logo_branco.png$   /writable/logos/CANNAL_NEG_SM.png [L]
+
+RewriteCond $1 !^(index\.php|assets|writable|manifest\.json|teste\.php)
+RewriteRule ^(.*)$ /index.php/$1 [L]

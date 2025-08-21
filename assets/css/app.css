@@ -1,0 +1,222 @@
+:root {
+	--breakpoint-sm: 576px;
+	--breakpoint-md: 768px;
+	--breakpoint-lg: 992px;
+	--breakpoint-xl: 1200px;
+	--breakpoint-xxl: 1400px;
+}
+
+@import
+	url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap')
+	;
+
+body {
+	overflow-x: hidden; /* Prevent scroll on narrow devices */
+}
+
+.checkbox .toggle {
+	margin-left: inherit !important;
+}
+
+.form-control{
+	background-color: #fff;
+}
+
+.xcrud-upload-container div:nth-child(2) {
+	margin-left: 0px;
+}
+
+.xcrud-upload[disabled="disabled"] {
+	cursor: no-drop;
+}
+
+.btn-success:has(.xcrud-upload[disabled="disabled"]) {
+	background-color: silver;
+	border-color: gray;
+}
+
+.form-horizontal .row>div {
+	overflow: auto;
+	padding-top: calc(.375rem + var(--bs-border-width));
+	padding-bottom: calc(.375rem + var(--bs-border-width));
+}
+
+.form-group.is-invalid {
+	color: #dc3545 !important;
+}
+
+.nav-scroller {
+	position: relative;
+	z-index: 2;
+	height: 2.75rem;
+	overflow-y: hidden;
+}
+
+.nav-scroller .nav {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-ms-flex-wrap: nowrap;
+	flex-wrap: nowrap;
+	padding-bottom: 1rem;
+	margin-top: -1px;
+	overflow-x: auto;
+	color: rgba(255, 255, 255, .75);
+	text-align: center;
+	white-space: nowrap;
+	-webkit-overflow-scrolling: touch;
+}
+
+.nav-underline {
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.nav-underline .navbar-brand {
+	color: var(--secondary) !important;
+}
+
+.nav-underline .nav-link {
+	padding-top: .75rem;
+	padding-bottom: .75rem;
+	color: var(--secondary);
+	cursor: pointer;
+}
+
+.nav-underline .nav-link:hover {
+	color: var(--blue);
+}
+
+.nav-underline .dropdown-item:not(.active):hover {
+	background: var(--light);
+}
+
+.nav-underline .dropdown-item:active {
+	background: var(--secondary);
+}
+
+.xcrud-file-name {
+	max-width: 250px;
+	overflow: hidden;
+}
+
+#whatsAppMsg textarea {
+	height: 80px;
+}
+
+.content_block {
+	border-radius: 2px;
+	-webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+	margin-bottom: 10px;
+	background: white;
+}
+
+.table thead>*>*, .table tfoot>*>* {
+	background-color: inherit;
+}
+
+.header_actions {
+	background-color: #dde4e8;
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+}
+
+.table thead tr, .table tfoot tr {
+	background-color: #edf0f4;
+}
+
+.table thead tr th {
+	color: #6e7580 !important;
+}
+
+@media screen and (max-width: 768px) {
+	.table-responsive thead, .table-responsive tfoot {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.table-responsive td:before {
+		content: attr(data-label);
+		float: left;
+		font-weight: 700;
+		letter-spacing: .1em;
+		margin-right: 12px;
+		text-transform: uppercase;
+		word-spacing: .1em;
+	}
+	.table-responsive td.xcrud-num:before {
+		content: '#';
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.table-responsive td {
+		border: 0px;
+		border-top: 1px solid #edf0f4;
+		display: block;
+		padding: 12px 8px;
+		text-align: right;
+		white-space: normal;
+		word-break: break-all;
+		border-top: 1px solid #edf0f4;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.table-responsive tr {
+		border-bottom: 8px solid --primary;
+	}
+}
+
+/* MENU */
+html, body {
+	overflow-x: hidden; /* Prevent scroll on narrow devices */
+}
+
+body {
+	padding-top: 56px;
+}
+
+@media ( max-width : var(--breakpoint-lg)) {
+	.offcanvas-collapse {
+		position: fixed;
+		top: 56px; /* Height of navbar */
+		bottom: 0;
+		left: 100%;
+		width: 100%;
+		padding-right: 1rem;
+		padding-left: 1rem;
+		overflow-y: auto;
+		visibility: hidden;
+		transition: transform .3s ease-in-out, visibility .3s ease-in-out;
+	}
+	.offcanvas-collapse.open {
+		visibility: visible;
+		transform: translateX(-100%);
+	}
+	.btn span {
+		display: none;
+	}
+}
+
+.nav-scroller .nav-link {
+	padding-top: .75rem;
+	padding-bottom: .75rem;
+}
+
+.inscricao header {
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover; /* Faz a imagem cobrir todo o container */
+}
+
+.inscricao header h1 {
+	font-size: calc(1.35rem + 2vw);
+	text-align: center;
+}
+
+.inscricao #rec_cartaoValidade{
+	display: none;
+}

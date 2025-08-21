@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+        <script src="ckeditor.js" type="text/javascript"></script>
+        <script src="config.js" type="text/javascript"></script>
+        <link href="skins/moono/editor.css" rel="stylesheet" type="text/css" />
+        <script src="lang/pt-br.js" type="text/javascript"></script>
+        <script src="styles.js" type="text/javascript"></script>
+        <script>
+        $(document).ready(function(){
+            var tb_default = [
+                { name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
+                { name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+                { name: 'paragraph',   groups: [ 'list', 'align' ] },
+                { name: 'links' },
+            	{ name: 'tools' }
+            ];
+            
+            var tb_Email = [
+            	{ name: 'document',	   groups: [ 'mode' ] },
+            	{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup'] },
+            	{ name: 'colors' },
+            	{ name: 'styles' },
+            	{ name: 'links' },
+            	{ name: 'insert' },
+            	{ name: 'paragraph',   groups: [ 'list', 'indent', 'align' ] },
+            	{ name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
+            	{ name: 'tools' },
+            	{ name: 'others' }
+            ];
+            
+            
+            var tb_Full = [
+                { name: 'document',    groups: [ 'mode', 'document', 'doctools' ] },
+                { name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
+                { name: 'editing',     groups: [ 'find', 'selection', 'spellchecker' ] },
+                { name: 'forms' },
+                '/',
+                { name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+                { name: 'paragraph',   groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ] },
+                { name: 'links' },
+                { name: 'insert' },
+                '/',
+                { name: 'styles' },
+                { name: 'colors' },
+                { name: 'tools' },
+                { name: 'others' },
+                { name: 'about' }
+            ];
+            CKEDITOR.replace('textarea_id',{toolbarGroups:tb_default});
+            CKEDITOR.replace('textarea_id2',{toolbarGroups:tb_Email});
+        });
+        </script>
+    </head>
+    <body>
+        <textarea id="textarea_id"></textarea>
+        <textarea id="textarea_id2" editor-toolbar="basic"></textarea>
+    </body>
+</html>
