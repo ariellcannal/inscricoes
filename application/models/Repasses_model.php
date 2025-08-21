@@ -55,16 +55,39 @@ class Repasses_model extends SYS_Model
 
     function getRelatorioPorUsuario($usr_id, $months)
     {
+        $usr_id = (int) $usr_id;
         $grupos = $this->getRepassesPorUsuario($usr_id, $months, true);
         $retorno = [];
         foreach ($grupos as $grp) {
-            $grp_id = $grp['grp_id'];
-            $retorno[$grp['grp_id']]['grupo'] = $grp['grp_nome'];
-            $retorno[$grp['grp_id']]['total_grupo'] = $this->db->query('SELECT SUM(rec_valorLiquido) as totalGrupo FROM recebiveis JOIN inscricoes ON ins_id = rec_inscricao WHERE ins_grupo = ' . $grp_id)->row_array()['totalGrupo'];
-            $retorno[$grp['grp_id']]['repassado'] = $this->db->query('SELECT SUM(rre_valor) as repassado FROM recebiveis_repasses JOIN recebiveis ON rre_recebivel = rec_id JOIN inscricoes ON ins_id = rec_inscricao WHERE rre_usuario = ' . $usr_id . ' AND ins_grupo = ' . $grp_id)->row_array()['repassado'];
-            $r = $this->db->query('SELECT SUM(rec_valorLiquido*(dst_porcentagem/100)) as aRepassar, dst.dst_porcentagem FROM recebiveis JOIN inscricoes ON ins_id = rec_inscricao JOIN grupos_distribuicao dst ON ins_grupo = dst_grupo WHERE dst_usuario = ' . $usr_id . ' AND ins_grupo = ' . $grp_id)->row_array();
-            $retorno[$grp['grp_id']]['a_repassar'] = $r['aRepassar'] - $retorno[$grp['grp_id']]['repassado'];
-            $retorno[$grp['grp_id']]['porcentagem'] = $r['dst_porcentagem'];
+            $grp_id = (int) $grp['grp_id'];
+            $retorno[$grp_id]['grupo'] = $grp['grp_nome'];
+            $retorno[$grp_id]['total_grupo'] = $this->db
+                ->select('SUM(rec_valorLiquido) as totalGrupo')
+                ->from('recebiveis')
+                ->join('inscricoes', 'ins_id = rec_inscricao')
+                ->where('ins_grupo', $grp_id)
+                ->get()
+                ->row_array()['totalGrupo'];
+            $retorno[$grp_id]['repassado'] = $this->db
+                ->select('SUM(rre_valor) as repassado')
+                ->from('recebiveis_repasses')
+                ->join('recebiveis', 'rre_recebivel = rec_id')
+                ->join('inscricoes', 'ins_id = rec_inscricao')
+                ->where('rre_usuario', $usr_id)
+                ->where('ins_grupo', $grp_id)
+                ->get()
+                ->row_array()['repassado'];
+            $r = $this->db
+                ->select('SUM(rec_valorLiquido*(dst_porcentagem/100)) as aRepassar, dst.dst_porcentagem')
+                ->from('recebiveis')
+                ->join('inscricoes', 'ins_id = rec_inscricao')
+                ->join('grupos_distribuicao dst', 'ins_grupo = dst_grupo')
+                ->where('dst_usuario', $usr_id)
+                ->where('ins_grupo', $grp_id)
+                ->get()
+                ->row_array();
+            $retorno[$grp_id]['a_repassar'] = $r['aRepassar'] - $retorno[$grp_id]['repassado'];
+            $retorno[$grp_id]['porcentagem'] = $r['dst_porcentagem'];
         }
         return $retorno;
     }
