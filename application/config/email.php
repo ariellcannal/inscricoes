@@ -1,12 +1,13 @@
 <?php
 $config['protocol'] = 'smtp';
 
-$config['smtp_host'] = 'email-smtp.sa-east-1.amazonaws.com';
-$config['smtp_user'] = 'AKIA2IS6ERFO66JBTTY5';
-$config['smtp_pass'] = 'BOYMm2xrlmGKRZvFvZmuh52JrZjW9m+dgRLwEmSdhIZv';
+$config['smtp_host'] = getenv('smtp.host');
+$config['smtp_user'] = getenv('smtp.user');
+$config['smtp_pass'] = getenv('smtp.pass');
 
-$config['smtp_port'] = 587;
-$config['smtp_crypto'] = 'tls';
+$config['smtp_port'] = getenv('smtp.port');
+$config['smtp_crypto'] = getenv('smtp.crypto');
+
 $config['smtp_keepalive'] = true;
 
 $config['mailtype'] = 'html';

@@ -19,6 +19,14 @@ class Teste extends SYS_Controller
 
     public function index()
     {
+        return;
+        $this->initMail();
+        $this->mail->SMTPDebug = 1;
+        $this->mail->addAddress('ariell@cannal.com.br');
+        $this->mail->subject('Teste');
+        $this->mail->message('Teste');
+        exit((string) $this->mail->send());
+        return;
         $this->load->view('teste.html');
         return;
         $this->initMail();
