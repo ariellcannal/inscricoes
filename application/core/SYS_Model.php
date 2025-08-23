@@ -22,7 +22,7 @@ class SYS_Model extends CI_Model
         $this->checkFunctions();
         
         if ($timeZone = config_item('time_zone_db')) {
-            $this->db->query("SET time_zone = '{$timeZone}'");
+            $this->db->query('SET time_zone = ?', [(string) $timeZone]);
         }
     }
     
