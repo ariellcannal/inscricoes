@@ -21,7 +21,7 @@ class Ajax extends SYS_Controller
 
     public function consultaCEP()
     {
-        if (empty($_REQUEST['cep']) || strlen($_REQUEST['cep']) != 8) {
+        if (empty($this->input->post('cep')) || strlen($this->input->post('cep')) != 8) {
             set_status_header(400);
             exit('CEP Inválido');
         } else {
@@ -29,12 +29,12 @@ class Ajax extends SYS_Controller
             curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($c, CURLOPT_CONNECTTIMEOUT, 0);
             curl_setopt($c, CURLOPT_TIMEOUT, 3); // timeout in seconds
-            curl_setopt($c, CURLOPT_URL, "http://viacep.com.br/ws/" . $_REQUEST['cep'] . "/json/");
+            curl_setopt($c, CURLOPT_URL, "https://viacep.com.br/ws/" . $this->input->post('cep') . "/json/");
             $dados = json_decode((string) curl_exec($c), true);
             curl_close($c);
             $dados['cidade'] = $dados['localidade'];
             $dados['estado'] = $dados['uf'];
-            $dados['cep'] = $_REQUEST['cep'];
+            $dados['cep'] = $this->input->post('cep');
             exit(json_encode($dados));
         }
     }
