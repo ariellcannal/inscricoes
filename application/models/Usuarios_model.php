@@ -19,21 +19,35 @@ class Usuarios_model extends SYS_Model
 
     function criptPass($pass)
     {
-        return crypt($pass, $this->config->item('encryption_key'));
+        return password_hash($pass, PASSWORD_DEFAULT);
     }
 
     function checkLogin($usuario, $senha)
     {
-        $this->db->where('usr_email', $usuario);
-        $this->db->where('usr_senha', $this->criptPass($senha));
-        $r = $this->db->get('usuarios');
-        //echo $this->db->last_query();exit;
-        if ($r->num_rows()) {
-            $id = $r->row_array();
-        } else
-            $id = false;
+        $r = $this->db->get_where('usuarios', ['usr_email' => $usuario]);
+        if (! $r->num_rows()) {
+            return false;
+        }
 
-        return $id;
+        $user = $r->row_array();
+        $stored = $user['usr_senha'];
+
+        if (password_verify($senha, $stored)) {
+            if (password_needs_rehash($stored, PASSWORD_DEFAULT)) {
+                $updated = $this->updateSenha($user['usr_id'], $senha);
+                $user['usr_senha'] = $updated['usr_senha'];
+            }
+            return $user;
+        }
+
+        $legacy = crypt($senha, $this->config->item('encryption_key'));
+        if (hash_equals($legacy, $stored) || password_verify($legacy, $stored)) {
+            $updated = $this->updateSenha($user['usr_id'], $senha);
+            $user['usr_senha'] = $updated['usr_senha'];
+            return $user;
+        }
+
+        return false;
     }
 
     function getUsuario($id)
@@ -58,6 +72,24 @@ class Usuarios_model extends SYS_Model
             'usr_id' => $id
         ), 1);
         return $set;
+    }
+
+    /**
+     * Re-hash das senhas ainda no formato legado
+     */
+    function rehashSenhasAntigas(): int
+    {
+        $usuarios = $this->db->get($this->table)->result_array();
+        $total = 0;
+        foreach ($usuarios as $usr) {
+            $info = password_get_info($usr['usr_senha']);
+            if ($info['algo'] === 0) {
+                $novo = password_hash($usr['usr_senha'], PASSWORD_DEFAULT);
+                $this->db->update($this->table, ['usr_senha' => $novo], ['usr_id' => $usr['usr_id']]);
+                $total++;
+            }
+        }
+        return $total;
     }
 
     function senhaTemporaria($tamanho = 10)
