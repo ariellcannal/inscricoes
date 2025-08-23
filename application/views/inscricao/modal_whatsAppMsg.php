@@ -22,8 +22,9 @@ $tags = array_keys($ci->inscricoes_model->getInscricaoCompleta(3));
 				</button>
 			</div>
 			<div class="modal-body">
-				<form>
-					<?php foreach ($msg as $m){?>
+                                <form>
+                                        <input type="hidden" name="<?=$ci->security->get_csrf_token_name();?>" value="<?=$ci->security->get_csrf_hash();?>">
+                                        <?php foreach ($msg as $m){?>
 					<div class="form-group input-group mb-2">
 						<textarea class="form-control form-control-sm" disabled="disabled" readonly="readonly"><?php echo $m?></textarea>
 						<button type="button" class="btn btn-primary btn-lg btn-block whatsAppMsg" data-msg="<?php echo $m?>">Selecionar</button>
