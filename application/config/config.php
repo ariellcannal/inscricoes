@@ -408,7 +408,7 @@ $config['cookie_prefix']	= '';
 $config['cookie_domain']	= 'inscricoes.cannal.com.br';
 $config['cookie_path']		= '/';
 $config['cookie_secure']	= TRUE;
-$config['cookie_httponly'] 	= FALSE;
+$config['cookie_httponly']      = TRUE;
 
 /*
 |--------------------------------------------------------------------------
