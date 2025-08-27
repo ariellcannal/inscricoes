@@ -84,10 +84,6 @@ fi
 # if find vendor -type d -name '.git' | grep -q .; then rm -rf vendor; fi
 
 composer clear-cache
-composer install --no-interaction --prefer-dist --no-dev
-
-
-# ===== Composer (sem dev) =====
-composer install --no-interaction --prefer-dist --no-dev
+composer update --no-interaction --prefer-dist --no-dev
 
 echo "[$(date '+%F %T')] Deploy OK"
