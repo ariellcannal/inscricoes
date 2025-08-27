@@ -1,41 +1,19 @@
 #!/usr/bin/env bash
-# deploy.sh – WHM/cPanel (lock fora do repo, HOME/COMPOSER_HOME, heartbeats, timeouts, git clean, composer dist)
+# deploy.sh – Script de deploy compatível com Ubuntu (heartbeats, timeouts, git clean, composer dist)
 
-set -eu
+set -euo pipefail
 
 # ===================== Configs =====================
 RUN_AS="cannal"                      # usuário dono do site
 TIMEOUT_SECS="${TIMEOUT_SECS:-1800}" # tempo máx (30 min)
-HEARTBEAT_SECS="${HEARTBEAT_SECS:-30}"
-REPO_SSH_URL="${REPO_SSH_URL:-git@github.com:ariellcannal/inscricoes.git}"
-
-# ===================== Reexecuta como usuário correto =====================
-if [ "$(id -un)" != "$RUN_AS" ]; then
-  exec sudo -u "$RUN_AS" -H bash -lc "cd '$(cd \"$(dirname \"$0\")\"; pwd)' && TIMEOUT_SECS='$TIMEOUT_SECS' HEARTBEAT_SECS='$HEARTBEAT_SECS' REPO_SSH_URL='$REPO_SSH_URL' ./$(basename \"$0\")"
-fi
-
-# ===================== Diretórios e ambiente =====================
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
-
-# LOCK FORA DO REPO (nunca será apagado por git clean/reset)
-LOCK_ROOT="/home/$RUN_AS/.locks"
-LOCKDIR="$LOCK_ROOT/inscricoes-deploy.lock.d"
-PIDFILE="$LOCKDIR/pid"
-
-LOG_DIR="$SCRIPT_DIR/application/logs"
-LOG_FILE="$LOG_DIR/deploy.log"
-
-# Ambiente consistente p/ Git/Composer
-export HOME="/home/$RUN_AS"
-export COMPOSER_HOME="$HOME/.composer"
-export PATH="/opt/cpanel/composer/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
-
-mkdir -p "$LOG_DIR" "$LOCK_ROOT" "$COMPOSER_HOME"
+HEARTBEAT_SECS="${HEARTBEAT_SECS:-30}" # intervalo de heartbeat
+REPO_SSH_URL="${REPO_SSH_URL:-git@github.com:ariellcannal/inscricoes.git}" 
 
 # ===================== Helpers =====================
+# Exibe mensagens com carimbo de data/hora
 stage() { echo "[$(date '+%F %T')] $*"; }
 
+# Executa comandos com timeout quando disponível
 do_timeout() {
   if command -v timeout >/dev/null 2>&1; then
     timeout --preserve-status "$TIMEOUT_SECS" "$@"
@@ -44,34 +22,39 @@ do_timeout() {
   fi
 }
 
-is_pid_alive() {
-  local _pid="$1"
-  [ -n "$_pid" ] && kill -0 "$_pid" 2>/dev/null
-}
-
-# ===================== Stale lock recovery =====================
-if [ -d "$LOCKDIR" ]; then
-  OLD_PID=""
-  [ -s "$PIDFILE" ] && OLD_PID="$(cat "$PIDFILE" 2>/dev/null || true)"
-  if [ -n "$OLD_PID" ] && ! is_pid_alive "$OLD_PID"; then
-    rm -rf "$LOCKDIR" 2>/dev/null || true
+# ===================== Reexecuta como usuário correto =====================
+if [ "$(id -un)" != "$RUN_AS" ]; then
+  if command -v sudo >/dev/null 2>&1; then
+    exec sudo -u "$RUN_AS" -H bash "$0"
+  else
+    echo "Este script deve ser executado como $RUN_AS" >&2
+    exit 1
   fi
 fi
 
-# ===================== Tenta adquirir lock (mkdir atômico) =====================
-if ! mkdir "$LOCKDIR" 2>/dev/null; then
-  echo "Outro deploy em andamento (lock: $LOCKDIR)"
-  if [ -s "$PIDFILE" ]; then
-    echo "PID atual (provável): $(cat "$PIDFILE")"
-    ps -p "$(cat "$PIDFILE")" -o pid,etime,cmd 2>/dev/null || true
-  fi
+# ===================== Diretórios e ambiente =====================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Arquivo de lock utilizando flock
+LOCKFILE="$SCRIPT_DIR/deploy.lock"
+exec 9>"$LOCKFILE"
+if ! flock -n 9; then
+  echo "Outro deploy em andamento (lock: $LOCKFILE)"
   exit 0
 fi
-
-# Gravamos o PID e garantimos limpeza ao sair
-echo $$ > "$PIDFILE"
-cleanup() { rm -rf "$LOCKDIR" 2>/dev/null || true; }
+cleanup() { rm -f "$LOCKFILE"; }
 trap cleanup EXIT
+
+LOG_DIR="$SCRIPT_DIR/application/logs"
+LOG_FILE="$LOG_DIR/deploy.log"
+
+# Ambiente consistente p/ Git/Composer
+export HOME="/home/$RUN_AS"
+export COMPOSER_HOME="$HOME/.composer"
+export PATH="$HOME/.config/composer/vendor/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+mkdir -p "$LOG_DIR" "$COMPOSER_HOME"
 
 # ===================== Logs (só depois do lock) =====================
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -122,6 +105,13 @@ git checkout -B "$BRANCH" "origin/$BRANCH"
 stage "Git: reset --hard origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
 
+# Atualiza submódulos somente quando configurados
+if [ -f .gitmodules ] && git config --file .gitmodules --name-only --get-regexp '^submodule\.' >/dev/null 2>&1; then
+  stage "Git: submodule sync and update --remote"
+  git submodule sync --recursive
+  git submodule update --init --recursive --remote
+fi
+
 # ===================== COMPOSER =====================
 stage "Composer: preferir dist (usar flag na instalação)"
 # Evitar composer config -g para não depender do HOME; a flag --prefer-dist resolve.
@@ -135,8 +125,24 @@ fi
 stage "Composer: clear-cache"
 composer clear-cache || true
 
-stage "Composer: install --no-dev --prefer-dist (timeout)"
-do_timeout composer install --no-interaction --prefer-dist --no-dev
+stage "Composer: self-update"
+# Atualiza o Composer apenas se o binário for gravável
+COMPOSER_BIN="$(command -v composer || true)"
+if [ -n "$COMPOSER_BIN" ] && [ -w "$COMPOSER_BIN" ]; then
+  composer self-update --2 --no-interaction || true
+else
+  stage "Composer: sem permissão para self-update, prosseguindo"
+fi
+
+# Valida composer.json sem exigir composer.lock
+stage "Composer: validate"
+if ! composer validate --no-check-lock --no-check-publish; then
+  stage "Composer: validação falhou"
+  exit 1
+fi
+
+stage "Composer: install --no-dev --prefer-dist --optimize-autoloader --no-progress (timeout)"
+do_timeout composer install --no-interaction --prefer-dist --no-dev --optimize-autoloader --no-progress
 
 stage "Deploy OK"
 echo "[$(date '+%F %T')] Deploy OK"
