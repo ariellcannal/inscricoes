@@ -1,53 +1,107 @@
 #!/usr/bin/env bash
-# deploy.sh – robusto para WHM/cPanel
+# deploy.sh – WHM/cPanel (lock fora do repo, HOME/COMPOSER_HOME, heartbeats, timeouts, git clean, composer dist)
 
-# ===== modo seguro (sem pipefail p/ máxima compatibilidade) =====
 set -eu
 
-# ===== resolve diretório do script (independe do CWD) =====
+# ===================== Configs =====================
+RUN_AS="cannal"                      # usuário dono do site
+TIMEOUT_SECS="${TIMEOUT_SECS:-1800}" # tempo máx (30 min)
+HEARTBEAT_SECS="${HEARTBEAT_SECS:-30}"
+REPO_SSH_URL="${REPO_SSH_URL:-git@github.com:ariellcannal/inscricoes.git}"
+
+# ===================== Reexecuta como usuário correto =====================
+if [ "$(id -un)" != "$RUN_AS" ]; then
+  exec sudo -u "$RUN_AS" -H bash -lc "cd '$(cd \"$(dirname \"$0\")\"; pwd)' && TIMEOUT_SECS='$TIMEOUT_SECS' HEARTBEAT_SECS='$HEARTBEAT_SECS' REPO_SSH_URL='$REPO_SSH_URL' ./$(basename \"$0\")"
+fi
+
+# ===================== Diretórios e ambiente =====================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# ===== lock consistente no diretório do projeto =====
-LOCKFILE="$SCRIPT_DIR/deploy.lock"
-exec 9>"$LOCKFILE"
-if ! flock -n 9; then
-  echo "Outro deploy em andamento (lock: $LOCKFILE)"
-  exit 0
-fi
-# libera o lock e remove o arquivo mesmo em erro/CTRL+C
-cleanup() {
-  flock -u 9 || true
-  rm -f "$LOCKFILE" || true
-}
-trap cleanup EXIT
+# LOCK FORA DO REPO (nunca será apagado por git clean/reset)
+LOCK_ROOT="/home/$RUN_AS/.locks"
+LOCKDIR="$LOCK_ROOT/inscricoes-deploy.lock.d"
+PIDFILE="$LOCKDIR/pid"
 
-# ===== PATH do composer típico no cPanel =====
+LOG_DIR="$SCRIPT_DIR/application/logs"
+LOG_FILE="$LOG_DIR/deploy.log"
+
+# Ambiente consistente p/ Git/Composer
+export HOME="/home/$RUN_AS"
+export COMPOSER_HOME="$HOME/.composer"
 export PATH="/opt/cpanel/composer/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-# ===== logs =====
-LOG_DIR="$SCRIPT_DIR/application/logs"
-mkdir -p "$LOG_DIR"
-# redireciona todo output do script para o log (e para a tela)
-exec > >(tee -a "$LOG_DIR/deploy.log") 2>&1
+mkdir -p "$LOG_DIR" "$LOCK_ROOT" "$COMPOSER_HOME"
+
+# ===================== Helpers =====================
+stage() { echo "[$(date '+%F %T')] $*"; }
+
+do_timeout() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout --preserve-status "$TIMEOUT_SECS" "$@"
+  else
+    "$@"
+  fi
+}
+
+is_pid_alive() {
+  local _pid="$1"
+  [ -n "$_pid" ] && kill -0 "$_pid" 2>/dev/null
+}
+
+# ===================== Stale lock recovery =====================
+if [ -d "$LOCKDIR" ]; then
+  OLD_PID=""
+  [ -s "$PIDFILE" ] && OLD_PID="$(cat "$PIDFILE" 2>/dev/null || true)"
+  if [ -n "$OLD_PID" ] && ! is_pid_alive "$OLD_PID"; then
+    rm -rf "$LOCKDIR" 2>/dev/null || true
+  fi
+fi
+
+# ===================== Tenta adquirir lock (mkdir atômico) =====================
+if ! mkdir "$LOCKDIR" 2>/dev/null; then
+  echo "Outro deploy em andamento (lock: $LOCKDIR)"
+  if [ -s "$PIDFILE" ]; then
+    echo "PID atual (provável): $(cat "$PIDFILE")"
+    ps -p "$(cat "$PIDFILE")" -o pid,etime,cmd 2>/dev/null || true
+  fi
+  exit 0
+fi
+
+# Gravamos o PID e garantimos limpeza ao sair
+echo $$ > "$PIDFILE"
+cleanup() { rm -rf "$LOCKDIR" 2>/dev/null || true; }
+trap cleanup EXIT
+
+# ===================== Logs (só depois do lock) =====================
+exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo "-------------------------------"
-echo "[$(date '+%F %T')] Iniciando deploy em $SCRIPT_DIR"
+echo "[$(date '+%F %T')] Iniciando deploy em $SCRIPT_DIR (user: $(id -un), pid: $$, timeout: ${TIMEOUT_SECS}s)"
 
-# ===== garante que o git confia neste diretório (Git 2.35+) =====
+# Heartbeat para acompanhar progresso
+(
+  while sleep "$HEARTBEAT_SECS"; do
+    echo "[$(date '+%F %T')] heartbeat: deploy em andamento (pid $$)"
+  done
+) &
+HB_PID=$!
+trap 'kill "$HB_PID" 2>/dev/null || true; cleanup' EXIT
+
+# ===================== GIT =====================
+stage "Git: configurar safe.directory (global, com HOME definido)"
 git config --global --add safe.directory "$SCRIPT_DIR" || true
 
-# ===== garante remoto 'origin' =====
 if ! git remote | grep -qx 'origin'; then
-  git remote add origin git@github.com:ariellcannal/inscricoes.git
+  stage "Git: adicionando remote origin $REPO_SSH_URL"
+  git remote add origin "$REPO_SSH_URL"
 fi
-# força a URL correta (ajuste se usar HTTPS)
-git remote set-url origin git@github.com:ariellcannal/inscricoes.git
+git remote set-url origin "$REPO_SSH_URL"
 
-# ===== busca remoto =====
-git fetch --prune origin
+stage "Git: fetch --prune origin (timeout)"
+do_timeout git fetch --prune origin
 
-# ===== detecta branch (main > master > HEAD) =====
+# Branch alvo
 if git rev-parse --verify origin/main >/dev/null 2>&1; then
   BRANCH="main"
 elif git rev-parse --verify origin/master >/dev/null 2>&1; then
@@ -55,38 +109,34 @@ elif git rev-parse --verify origin/master >/dev/null 2>&1; then
 else
   BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo main)"
 fi
-echo "Branch alvo: $BRANCH"
+stage "Branch alvo: $BRANCH"
 
-# ===== posiciona e sincroniza =====
-# cria/ajusta branch local para rastrear a remota
+# Working tree limpo
+stage "Git: reset --hard e clean -fd"
 git reset --hard
 git clean -fd
+
+stage "Git: checkout -B $BRANCH origin/$BRANCH"
 git checkout -B "$BRANCH" "origin/$BRANCH"
+
+stage "Git: reset --hard origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
 
-# --- sempre rodar como o usuário do site (não root) ---
-RUN_AS="cannal"
-if [ "$(id -un)" != "$RUN_AS" ]; then
-  exec sudo -u "$RUN_AS" -H bash -lc "cd '$(cd "$(dirname "$0")"; pwd)' && ./$(basename "$0")"
+# ===================== COMPOSER =====================
+stage "Composer: preferir dist (usar flag na instalação)"
+# Evitar composer config -g para não depender do HOME; a flag --prefer-dist resolve.
+
+# Se houver qualquer .git dentro de vendor, reinstalar limpo
+if find vendor -type d -name ".git" | grep -q . 2>/dev/null; then
+  stage "Composer: detectado .git em vendor — removendo vendor/ para instalação limpa"
+  rm -rf vendor
 fi
 
-# --- preferir “dist” (ZIP) globalmente para evitar repositórios Git em vendor ---
-composer config -g preferred-install dist || true
+stage "Composer: clear-cache"
+composer clear-cache || true
 
-# --- se houver repo Git em vendor e estiver “sujo”, limpar ou remover ---
-if [ -d vendor/apimatic/unirest-php ]; then
-  if git -C vendor/apimatic/unirest-php rev-parse --git-dir >/dev/null 2>&1; then
-    # tenta ‘reset/clean’; se falhar, remove o pacote
-    git -C vendor/apimatic/unirest-php reset --hard || rm -rf vendor/apimatic/unirest-php
-    git -C vendor/apimatic/unirest-php clean -fd || true
-  fi
-fi
+stage "Composer: install --no-dev --prefer-dist (timeout)"
+do_timeout composer install --no-interaction --prefer-dist --no-dev
 
-# opcional (mais agressivo e simples): se detectar QUALQUER .git dentro de vendor, zera vendor
-# if find vendor -type d -name '.git' | grep -q .; then rm -rf vendor; fi
-
-# ===== Composer (sem dev) =====
-composer clear-cache
-composer install --no-interaction --prefer-dist --no-dev --force
-
+stage "Deploy OK"
 echo "[$(date '+%F %T')] Deploy OK"
