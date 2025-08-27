@@ -59,6 +59,8 @@ echo "Branch alvo: $BRANCH"
 
 # ===== posiciona e sincroniza =====
 # cria/ajusta branch local para rastrear a remota
+git reset --hard
+git clean -fd
 git checkout -B "$BRANCH" "origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
 
@@ -85,6 +87,6 @@ fi
 
 # ===== Composer (sem dev) =====
 composer clear-cache
-composer install --no-interaction --prefer-dist --no-dev
+composer install --no-interaction --prefer-dist --no-dev --force
 
 echo "[$(date '+%F %T')] Deploy OK"
