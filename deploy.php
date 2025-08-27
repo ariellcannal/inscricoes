@@ -95,6 +95,7 @@ class DeployHandler
             @unlink($legacyLock);
         }
 
+
         // Garante que o script de deploy esteja atualizado antes da execução
         $rootEsc = escapeshellarg($this->rootPath);
         exec("git -C {$rootEsc} fetch --prune origin");
@@ -116,7 +117,7 @@ class DeployHandler
         if (! is_dir($logDir)) {
             @mkdir($logDir, 0775, true);
         }
-        exec('bash ' . escapeshellarg($this->deployScript) . ' >> '
+        exec('nohup bash ' . escapeshellarg($this->deployScript) . ' >> '
             . escapeshellarg($this->logPath) . ' 2>&1 &');
 
         http_response_code(200);

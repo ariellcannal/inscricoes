@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# deploy.sh – WHM/cPanel (lock fora do repo, HOME/COMPOSER_HOME, heartbeats, timeouts, git clean, composer dist)
+# deploy.sh – Script de deploy compatível com Ubuntu (heartbeats, timeouts, git clean, composer dist)
 
 set -euo pipefail
 
 # ===================== Configs =====================
 RUN_AS="cannal"                      # usuário dono do site
 TIMEOUT_SECS="${TIMEOUT_SECS:-1800}" # tempo máx (30 min)
-HEARTBEAT_SECS="${HEARTBEAT_SECS:-30}"
-REPO_SSH_URL="${REPO_SSH_URL:-git@github.com:ariellcannal/inscricoes.git}"
+HEARTBEAT_SECS="${HEARTBEAT_SECS:-30}" # intervalo de heartbeat
+REPO_SSH_URL="${REPO_SSH_URL:-git@github.com:ariellcannal/inscricoes.git}" 
 
 # ===================== Helpers =====================
 # Exibe mensagens com carimbo de data/hora
@@ -60,8 +60,10 @@ if [ -e "$LEGACY_LOCK" ]; then
 fi
 
 # ===================== Helpers =====================
+# Exibe mensagens com carimbo de data/hora
 stage() { echo "[$(date '+%F %T')] $*"; }
 
+# Executa comandos com timeout quando disponível
 do_timeout() {
   if command -v timeout >/dev/null 2>&1; then
     timeout --preserve-status "$TIMEOUT_SECS" "$@"
@@ -70,34 +72,39 @@ do_timeout() {
   fi
 }
 
-is_pid_alive() {
-  local _pid="$1"
-  [ -n "$_pid" ] && kill -0 "$_pid" 2>/dev/null
-}
-
-# ===================== Stale lock recovery =====================
-if [ -d "$LOCKDIR" ]; then
-  OLD_PID=""
-  [ -s "$PIDFILE" ] && OLD_PID="$(cat "$PIDFILE" 2>/dev/null || true)"
-  if [ -n "$OLD_PID" ] && ! is_pid_alive "$OLD_PID"; then
-    rm -rf "$LOCKDIR" 2>/dev/null || true
+# ===================== Reexecuta como usuário correto =====================
+if [ "$(id -un)" != "$RUN_AS" ]; then
+  if command -v sudo >/dev/null 2>&1; then
+    exec sudo -u "$RUN_AS" -H bash "$0"
+  else
+    echo "Este script deve ser executado como $RUN_AS" >&2
+    exit 1
   fi
 fi
 
-# ===================== Tenta adquirir lock (mkdir atômico) =====================
-if ! mkdir "$LOCKDIR" 2>/dev/null; then
-  echo "Outro deploy em andamento (lock: $LOCKDIR)"
-  if [ -s "$PIDFILE" ]; then
-    echo "PID atual (provável): $(cat "$PIDFILE")"
-    ps -p "$(cat "$PIDFILE")" -o pid,etime,cmd 2>/dev/null || true
-  fi
+# ===================== Diretórios e ambiente =====================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Arquivo de lock utilizando flock
+LOCKFILE="$SCRIPT_DIR/deploy.lock"
+exec 9>"$LOCKFILE"
+if ! flock -n 9; then
+  echo "Outro deploy em andamento (lock: $LOCKFILE)"
   exit 0
 fi
-
-# Gravamos o PID e garantimos limpeza ao sair
-echo $$ > "$PIDFILE"
-cleanup() { rm -rf "$LOCKDIR" 2>/dev/null || true; }
+cleanup() { rm -f "$LOCKFILE"; }
 trap cleanup EXIT
+
+LOG_DIR="$SCRIPT_DIR/application/logs"
+LOG_FILE="$LOG_DIR/deploy.log"
+
+# Ambiente consistente p/ Git/Composer
+export HOME="/home/$RUN_AS"
+export COMPOSER_HOME="$HOME/.composer"
+export PATH="$HOME/.config/composer/vendor/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+mkdir -p "$LOG_DIR" "$COMPOSER_HOME"
 
 # ===================== Logs (só depois do lock) =====================
 exec > >(tee -a "$LOG_FILE") 2>&1
