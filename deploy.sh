@@ -116,6 +116,16 @@ export PATH="$HOME/.config/composer/vendor/bin:/usr/local/bin:/usr/bin:/bin:$PAT
 
 mkdir -p "$LOG_DIR" "$COMPOSER_HOME"
 
+LOG_DIR="$SCRIPT_DIR/application/logs"
+LOG_FILE="$LOG_DIR/deploy.log"
+
+# Ambiente consistente p/ Git/Composer
+export HOME="/home/$RUN_AS"
+export COMPOSER_HOME="$HOME/.composer"
+export PATH="$HOME/.config/composer/vendor/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+mkdir -p "$LOG_DIR" "$COMPOSER_HOME"
+
 # ===================== Logs (só depois do lock) =====================
 exec > >(tee -a "$LOG_FILE") 2>&1
 
@@ -182,6 +192,10 @@ if find vendor -type d -name ".git" | grep -q . 2>/dev/null; then
   rm -rf vendor
 fi
 
+# ===================== COMPOSER =====================
+stage "Composer: removendo vendor/ para instalação limpa"
+rm -rf vendor
+
 stage "Composer: clear-cache"
 composer clear-cache || true
 
@@ -201,8 +215,8 @@ if ! composer validate --no-check-lock --no-check-publish; then
   exit 1
 fi
 
-stage "Composer: install --no-dev --prefer-dist --optimize-autoloader --no-progress (timeout)"
-do_timeout composer install --no-interaction --prefer-dist --no-dev --optimize-autoloader --no-progress
+stage "Composer: update --no-dev --prefer-dist --optimize-autoloader --no-progress (timeout)"
+do_timeout composer update --no-interaction --prefer-dist --no-dev --optimize-autoloader --no-progress
 
 stage "Deploy OK"
 echo "[$(date '+%F %T')] Deploy OK"
