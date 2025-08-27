@@ -1,13 +1,32 @@
 #!/usr/bin/env bash
 # deploy.sh – WHM/cPanel (lock fora do repo, HOME/COMPOSER_HOME, heartbeats, timeouts, git clean, composer dist)
 
-set -eu
+set -euo pipefail
 
 # ===================== Configs =====================
 RUN_AS="cannal"                      # usuário dono do site
 TIMEOUT_SECS="${TIMEOUT_SECS:-1800}" # tempo máx (30 min)
 HEARTBEAT_SECS="${HEARTBEAT_SECS:-30}"
 REPO_SSH_URL="${REPO_SSH_URL:-git@github.com:ariellcannal/inscricoes.git}"
+
+# ===================== Helpers =====================
+# Exibe mensagens com carimbo de data/hora
+stage() { echo "[$(date '+%F %T')] $*"; }
+
+# Executa comandos com timeout quando disponível
+do_timeout() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout --preserve-status "$TIMEOUT_SECS" "$@"
+  else
+    "$@"
+  fi
+}
+
+# Verifica se um PID ainda está ativo
+is_pid_alive() {
+  local _pid="$1"
+  [ -n "$_pid" ] && kill -0 "$_pid" 2>/dev/null
+}
 
 # ===================== Reexecuta como usuário correto =====================
 if [ "$(id -un)" != "$RUN_AS" ]; then
@@ -33,21 +52,12 @@ export PATH="/opt/cpanel/composer/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
 mkdir -p "$LOG_DIR" "$LOCK_ROOT" "$COMPOSER_HOME"
 
-# ===================== Helpers =====================
-stage() { echo "[$(date '+%F %T')] $*"; }
-
-do_timeout() {
-  if command -v timeout >/dev/null 2>&1; then
-    timeout --preserve-status "$TIMEOUT_SECS" "$@"
-  else
-    "$@"
-  fi
-}
-
-is_pid_alive() {
-  local _pid="$1"
-  [ -n "$_pid" ] && kill -0 "$_pid" 2>/dev/null
-}
+# Remoção de lock antigo no diretório do projeto (compatibilidade)
+LEGACY_LOCK="$SCRIPT_DIR/deploy.lock"
+if [ -e "$LEGACY_LOCK" ]; then
+  stage "Removendo lock legado $LEGACY_LOCK"
+  rm -f "$LEGACY_LOCK"
+fi
 
 # ===================== Stale lock recovery =====================
 if [ -d "$LOCKDIR" ]; then
@@ -122,6 +132,10 @@ git checkout -B "$BRANCH" "origin/$BRANCH"
 stage "Git: reset --hard origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
 
+stage "Git: submodule sync and update --remote"
+git submodule sync --recursive
+git submodule update --init --recursive --remote
+
 # ===================== COMPOSER =====================
 stage "Composer: preferir dist (usar flag na instalação)"
 # Evitar composer config -g para não depender do HOME; a flag --prefer-dist resolve.
@@ -135,8 +149,11 @@ fi
 stage "Composer: clear-cache"
 composer clear-cache || true
 
-stage "Composer: install --no-dev --prefer-dist (timeout)"
-do_timeout composer install --no-interaction --prefer-dist --no-dev
+stage "Composer: self-update"
+composer self-update --2 || true
+
+stage "Composer: install --no-dev --prefer-dist --optimize-autoloader --no-progress (timeout)"
+do_timeout composer install --no-interaction --prefer-dist --no-dev --optimize-autoloader --no-progress
 
 stage "Deploy OK"
 echo "[$(date '+%F %T')] Deploy OK"
