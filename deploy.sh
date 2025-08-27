@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 # deploy.sh – Script de deploy compatível com Ubuntu (heartbeats, timeouts, git clean, composer dist)
 
+# ===================== Helpers =====================
+# Exibe mensagens com carimbo de data/hora
+stage() { echo "[$(date '+%F %T')] $*"; }
+
+# Executa comandos com timeout quando disponível
+do_timeout() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout --preserve-status "$TIMEOUT_SECS" "$@"
+  else
+    "$@"
+  fi
+}
+
 set -euo pipefail
 
 # ===================== Configs =====================
@@ -45,6 +58,63 @@ if ! flock -n 9; then
 fi
 cleanup() { rm -f "$LOCKFILE"; }
 trap cleanup EXIT
+
+REPO_SSH_URL="${REPO_SSH_URL:-git@github.com:ariellcannal/inscricoes.git}"
+
+# ===================== Reexecuta como usuário correto =====================
+if [ "$(id -un)" != "$RUN_AS" ]; then
+  if command -v sudo >/dev/null 2>&1; then
+    exec sudo -u "$RUN_AS" -H bash "$0"
+  else
+    echo "Este script deve ser executado como $RUN_AS" >&2
+    exit 1
+  fi
+fi
+
+# ===================== Diretórios e ambiente =====================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Arquivo de lock utilizando flock
+LOCKFILE="$SCRIPT_DIR/deploy.lock"
+exec 9>"$LOCKFILE"
+if ! flock -n 9; then
+  echo "Outro deploy em andamento (lock: $LOCKFILE)"
+  exit 0
+fi
+cleanup() { rm -f "$LOCKFILE"; }
+trap cleanup EXIT
+
+LOG_DIR="$SCRIPT_DIR/application/logs"
+LOG_FILE="$LOG_DIR/deploy.log"
+
+# Ambiente consistente p/ Git/Composer
+export HOME="/home/$RUN_AS"
+export COMPOSER_HOME="$HOME/.composer"
+export PATH="$HOME/.config/composer/vendor/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+mkdir -p "$LOG_DIR" "$COMPOSER_HOME"
+
+
+LOG_DIR="$SCRIPT_DIR/application/logs"
+LOG_FILE="$LOG_DIR/deploy.log"
+
+# Ambiente consistente p/ Git/Composer
+export HOME="/home/$RUN_AS"
+export COMPOSER_HOME="$HOME/.composer"
+export PATH="$HOME/.config/composer/vendor/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+mkdir -p "$LOG_DIR" "$COMPOSER_HOME"
+
+LOG_DIR="$SCRIPT_DIR/application/logs"
+LOG_FILE="$LOG_DIR/deploy.log"
+
+# Ambiente consistente p/ Git/Composer
+export HOME="/home/$RUN_AS"
+export COMPOSER_HOME="$HOME/.composer"
+export PATH="$HOME/.config/composer/vendor/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+mkdir -p "$LOG_DIR" "$COMPOSER_HOME"
 
 LOG_DIR="$SCRIPT_DIR/application/logs"
 LOG_FILE="$LOG_DIR/deploy.log"
@@ -110,6 +180,16 @@ if [ -f .gitmodules ] && git config --file .gitmodules --name-only --get-regexp 
   stage "Git: submodule sync and update --remote"
   git submodule sync --recursive
   git submodule update --init --recursive --remote
+fi
+
+# ===================== COMPOSER =====================
+stage "Composer: preferir dist (usar flag na instalação)"
+# Evitar composer config -g para não depender do HOME; a flag --prefer-dist resolve.
+
+# Se houver qualquer .git dentro de vendor, reinstalar limpo
+if find vendor -type d -name ".git" | grep -q . 2>/dev/null; then
+  stage "Composer: detectado .git em vendor — removendo vendor/ para instalação limpa"
+  rm -rf vendor
 fi
 
 # ===================== COMPOSER =====================
