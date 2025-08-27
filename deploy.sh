@@ -62,6 +62,31 @@ echo "Branch alvo: $BRANCH"
 git checkout -B "$BRANCH" "origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
 
+# --- sempre rodar como o usuário do site (não root) ---
+RUN_AS="cannal"
+if [ "$(id -un)" != "$RUN_AS" ]; then
+  exec sudo -u "$RUN_AS" -H bash -lc "cd '$(cd "$(dirname "$0")"; pwd)' && ./$(basename "$0")"
+fi
+
+# --- preferir “dist” (ZIP) globalmente para evitar repositórios Git em vendor ---
+composer config -g preferred-install dist || true
+
+# --- se houver repo Git em vendor e estiver “sujo”, limpar ou remover ---
+if [ -d vendor/apimatic/unirest-php ]; then
+  if git -C vendor/apimatic/unirest-php rev-parse --git-dir >/dev/null 2>&1; then
+    # tenta ‘reset/clean’; se falhar, remove o pacote
+    git -C vendor/apimatic/unirest-php reset --hard || rm -rf vendor/apimatic/unirest-php
+    git -C vendor/apimatic/unirest-php clean -fd || true
+  fi
+fi
+
+# opcional (mais agressivo e simples): se detectar QUALQUER .git dentro de vendor, zera vendor
+# if find vendor -type d -name '.git' | grep -q .; then rm -rf vendor; fi
+
+composer clear-cache
+composer install --no-interaction --prefer-dist --no-dev
+
+
 # ===== Composer (sem dev) =====
 composer install --no-interaction --prefer-dist --no-dev
 
