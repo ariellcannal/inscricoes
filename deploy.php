@@ -88,7 +88,8 @@ class DeployHandler
             exit('Ignored');
         }
 
-        // Lock para evitar concorrência
+        // Script de deploy possui lock próprio para evitar concorrência
+        // e é disparado em background
         $lockFile = $this->rootPath . '/deploy.lock';
         $lock = fopen($lockFile, 'c');
         if (! flock($lock, LOCK_EX | LOCK_NB)) {

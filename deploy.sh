@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # deploy.sh – WHM/cPanel (lock fora do repo, HOME/COMPOSER_HOME, heartbeats, timeouts, git clean, composer dist)
 
-set -eu
+set -euo pipefail
 
 # ===================== Configs =====================
 RUN_AS="cannal"                      # usuário dono do site
@@ -35,14 +35,9 @@ mkdir -p "$LOG_DIR" "$LOCK_ROOT" "$COMPOSER_HOME"
 
 # Remoção de lock antigo no diretório do projeto (compatibilidade)
 LEGACY_LOCK="$SCRIPT_DIR/deploy.lock"
-if [ -f "$LEGACY_LOCK" ]; then
-  if exec 9>"$LEGACY_LOCK" && flock -n 9; then
-    rm -f "$LEGACY_LOCK"
-    exec 9>&-
-  else
-    echo "Outro deploy em andamento (lock: $LEGACY_LOCK)"
-    exit 0
-  fi
+if [ -e "$LEGACY_LOCK" ]; then
+  stage "Removendo lock legado $LEGACY_LOCK"
+  rm -f "$LEGACY_LOCK"
 fi
 
 # ===================== Helpers =====================
