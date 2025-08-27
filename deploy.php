@@ -117,8 +117,9 @@ class DeployHandler
         if (! is_dir($logDir)) {
             @mkdir($logDir, 0775, true);
         }
-        exec('nohup bash ' . escapeshellarg($this->deployScript) . ' >> '
-            . escapeshellarg($this->logPath) . ' 2>&1 &');
+
+        // Script registra logs internamente; saída é descartada para evitar duplicidade
+        exec('nohup bash ' . escapeshellarg($this->deployScript) . ' >/dev/null 2>&1 &');
 
         http_response_code(200);
         echo 'OK';
