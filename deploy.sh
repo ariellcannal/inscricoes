@@ -1,36 +1,68 @@
 #!/usr/bin/env bash
+# deploy.sh – robusto para WHM/cPanel
 
-# Arquivo: deploy.sh (na raiz do projeto)
-set -euo pipefail
+# ===== modo seguro (sem pipefail p/ máxima compatibilidade) =====
+set -eu
 
-# Lock para evitar deploy simultâneo
-LOCKFILE="$(pwd)/deploy.lock"
+# ===== resolve diretório do script (independe do CWD) =====
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# ===== lock consistente no diretório do projeto =====
+LOCKFILE="$SCRIPT_DIR/deploy.lock"
 exec 9>"$LOCKFILE"
-flock -n 9 || { echo "Outro deploy em andamento"; exit 0; }
+if ! flock -n 9; then
+  echo "Outro deploy em andamento (lock: $LOCKFILE)"
+  exit 0
+fi
+# libera o lock e remove o arquivo mesmo em erro/CTRL+C
+cleanup() {
+  flock -u 9 || true
+  rm -f "$LOCKFILE" || true
+}
+trap cleanup EXIT
 
-# Composer no cPanel/WHM
+# ===== PATH do composer típico no cPanel =====
 export PATH="/opt/cpanel/composer/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-PROJECT_DIR="$(pwd)"
-BRANCH="master"
-LOG_DIR="$PROJECT_DIR/application/logs"
-
+# ===== logs =====
+LOG_DIR="$SCRIPT_DIR/application/logs"
 mkdir -p "$LOG_DIR"
-echo "-------------------------------" >> "$LOG_DIR/deploy.log"
-echo "[$(date '+%F %T')] Iniciando deploy" >> "$LOG_DIR/deploy.log"
+# redireciona todo output do script para o log (e para a tela)
+exec > >(tee -a "$LOG_DIR/deploy.log") 2>&1
 
-cd "$PROJECT_DIR"
+echo "-------------------------------"
+echo "[$(date '+%F %T')] Iniciando deploy em $SCRIPT_DIR"
 
-# Garante estado limpo na branch certa
-git fetch origin "$BRANCH"
-git checkout "$BRANCH"
-git reset --hard "origin/$BRANCH"   # NÃO remove arquivos não rastreados (.env permanece)
+# ===== garante que o git confia neste diretório (Git 2.35+) =====
+git config --global --add safe.directory "$SCRIPT_DIR" || true
 
-# Dependências (sem dev)
+# ===== garante remoto 'origin' =====
+if ! git remote | grep -qx 'origin'; then
+  git remote add origin git@github.com:ariellcannal/inscricoes.git
+fi
+# força a URL correta (ajuste se usar HTTPS)
+git remote set-url origin git@github.com:ariellcannal/inscricoes.git
+
+# ===== busca remoto =====
+git fetch --prune origin
+
+# ===== detecta branch (main > master > HEAD) =====
+if git rev-parse --verify origin/main >/dev/null 2>&1; then
+  BRANCH="main"
+elif git rev-parse --verify origin/master >/dev/null 2>&1; then
+  BRANCH="master"
+else
+  BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo main)"
+fi
+echo "Branch alvo: $BRANCH"
+
+# ===== posiciona e sincroniza =====
+# cria/ajusta branch local para rastrear a remota
+git checkout -B "$BRANCH" "origin/$BRANCH"
+git reset --hard "origin/$BRANCH"
+
+# ===== Composer (sem dev) =====
 composer install --no-interaction --prefer-dist --no-dev
 
-# (Opcional) passos pós-deploy
-# php artisan migrate --force
-# npm ci && npm run build
-
-echo "[$(date '+%F %T')] Deploy OK" >> "$LOG_DIR/deploy.log"
+echo "[$(date '+%F %T')] Deploy OK"
