@@ -1,0 +1,11 @@
+/.buildpath
+/.dbeaver/
+/.project
+/.hooks
+/.settings/
+/composer.lock
+/index_teste.php
+/teste.php
+/writable/
+/.env
+/deploy.php
