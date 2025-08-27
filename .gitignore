@@ -8,4 +8,5 @@
 /teste.php
 /writable/
 /.env
-/deploy.php
+/.env
+/deploy.lock

@@ -10,5 +10,5 @@ RewriteRule ^(.*)$ https://grupos.grupotapa.com.br/$1 [R,L]
 RewriteRule ^assets/img/logo_preto.png$   /writable/logos/CANNAL_POS_SM.png [L]
 RewriteRule ^assets/img/logo_branco.png$   /writable/logos/CANNAL_NEG_SM.png [L]
 
-RewriteCond $1 !^(index\.php|assets|writable|manifest\.json|teste\.php)
+RewriteCond $1 !^(index\.php|assets|writable|manifest\.json|deploy\.php)
 RewriteRule ^(.*)$ /index.php/$1 [L]
