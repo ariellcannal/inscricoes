@@ -33,6 +33,18 @@ export PATH="/opt/cpanel/composer/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
 mkdir -p "$LOG_DIR" "$LOCK_ROOT" "$COMPOSER_HOME"
 
+# Remoção de lock antigo no diretório do projeto (compatibilidade)
+LEGACY_LOCK="$SCRIPT_DIR/deploy.lock"
+if [ -f "$LEGACY_LOCK" ]; then
+  if exec 9>"$LEGACY_LOCK" && flock -n 9; then
+    rm -f "$LEGACY_LOCK"
+    exec 9>&-
+  else
+    echo "Outro deploy em andamento (lock: $LEGACY_LOCK)"
+    exit 0
+  fi
+fi
+
 # ===================== Helpers =====================
 stage() { echo "[$(date '+%F %T')] $*"; }
 
