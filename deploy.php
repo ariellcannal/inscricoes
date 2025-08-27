@@ -90,6 +90,15 @@ class DeployHandler
 
         // Script de deploy possui lock próprio para evitar concorrência
         // e é disparado em background
+        $lockFile = $this->rootPath . '/deploy.lock';
+        $lock = fopen($lockFile, 'c');
+        if (! flock($lock, LOCK_EX | LOCK_NB)) {
+            http_response_code(202);
+            echo 'Deploy em andamento';
+            exit();
+        }
+
+        // Dispara script em background
         if (! is_executable($this->deployScript)) {
             @chmod($this->deployScript, 0755);
         }

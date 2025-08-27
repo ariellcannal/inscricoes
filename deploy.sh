@@ -59,6 +59,22 @@ if [ -e "$LEGACY_LOCK" ]; then
   rm -f "$LEGACY_LOCK"
 fi
 
+# ===================== Helpers =====================
+stage() { echo "[$(date '+%F %T')] $*"; }
+
+do_timeout() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout --preserve-status "$TIMEOUT_SECS" "$@"
+  else
+    "$@"
+  fi
+}
+
+is_pid_alive() {
+  local _pid="$1"
+  [ -n "$_pid" ] && kill -0 "$_pid" 2>/dev/null
+}
+
 # ===================== Stale lock recovery =====================
 if [ -d "$LOCKDIR" ]; then
   OLD_PID=""
