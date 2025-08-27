@@ -9,6 +9,25 @@ TIMEOUT_SECS="${TIMEOUT_SECS:-1800}" # tempo máx (30 min)
 HEARTBEAT_SECS="${HEARTBEAT_SECS:-30}"
 REPO_SSH_URL="${REPO_SSH_URL:-git@github.com:ariellcannal/inscricoes.git}"
 
+# ===================== Helpers =====================
+# Exibe mensagens com carimbo de data/hora
+stage() { echo "[$(date '+%F %T')] $*"; }
+
+# Executa comandos com timeout quando disponível
+do_timeout() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout --preserve-status "$TIMEOUT_SECS" "$@"
+  else
+    "$@"
+  fi
+}
+
+# Verifica se um PID ainda está ativo
+is_pid_alive() {
+  local _pid="$1"
+  [ -n "$_pid" ] && kill -0 "$_pid" 2>/dev/null
+}
+
 # ===================== Reexecuta como usuário correto =====================
 if [ "$(id -un)" != "$RUN_AS" ]; then
   exec sudo -u "$RUN_AS" -H bash -lc "cd '$(cd \"$(dirname \"$0\")\"; pwd)' && TIMEOUT_SECS='$TIMEOUT_SECS' HEARTBEAT_SECS='$HEARTBEAT_SECS' REPO_SSH_URL='$REPO_SSH_URL' ./$(basename \"$0\")"
