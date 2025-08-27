@@ -83,7 +83,8 @@ fi
 # opcional (mais agressivo e simples): se detectar QUALQUER .git dentro de vendor, zera vendor
 # if find vendor -type d -name '.git' | grep -q .; then rm -rf vendor; fi
 
+# ===== Composer (sem dev) =====
 composer clear-cache
-composer update --no-interaction --prefer-dist --no-dev
+composer install --no-interaction --prefer-dist --no-dev
 
 echo "[$(date '+%F %T')] Deploy OK"
