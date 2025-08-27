@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # deploy.sh – Script de deploy compatível com Ubuntu (heartbeats, timeouts, git clean, composer dist)
 
-
 # ===================== Helpers =====================
 # Exibe mensagens com carimbo de data/hora
 stage() { echo "[$(date '+%F %T')] $*"; }
@@ -21,7 +20,6 @@ set -euo pipefail
 RUN_AS="cannal"                      # usuário dono do site
 TIMEOUT_SECS="${TIMEOUT_SECS:-1800}" # tempo máx (30 min)
 HEARTBEAT_SECS="${HEARTBEAT_SECS:-30}" # intervalo de heartbeat
-
 REPO_SSH_URL="${REPO_SSH_URL:-git@github.com:ariellcannal/inscricoes.git}" 
 
 # ===================== Helpers =====================
@@ -108,6 +106,16 @@ export PATH="$HOME/.config/composer/vendor/bin:/usr/local/bin:/usr/bin:/bin:$PAT
 
 mkdir -p "$LOG_DIR" "$COMPOSER_HOME"
 
+LOG_DIR="$SCRIPT_DIR/application/logs"
+LOG_FILE="$LOG_DIR/deploy.log"
+
+# Ambiente consistente p/ Git/Composer
+export HOME="/home/$RUN_AS"
+export COMPOSER_HOME="$HOME/.composer"
+export PATH="$HOME/.config/composer/vendor/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+mkdir -p "$LOG_DIR" "$COMPOSER_HOME"
+
 # ===================== Logs (só depois do lock) =====================
 exec > >(tee -a "$LOG_FILE") 2>&1
 
@@ -157,7 +165,6 @@ git checkout -B "$BRANCH" "origin/$BRANCH"
 stage "Git: reset --hard origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
 
-
 # Atualiza submódulos somente quando configurados
 if [ -f .gitmodules ] && git config --file .gitmodules --name-only --get-regexp '^submodule\.' >/dev/null 2>&1; then
   stage "Git: submodule sync and update --remote"
@@ -179,11 +186,17 @@ stage "Composer: clear-cache"
 composer clear-cache || true
 
 stage "Composer: self-update"
-composer self-update --2 || true
+# Atualiza o Composer apenas se o binário for gravável
+COMPOSER_BIN="$(command -v composer || true)"
+if [ -n "$COMPOSER_BIN" ] && [ -w "$COMPOSER_BIN" ]; then
+  composer self-update --2 --no-interaction || true
+else
+  stage "Composer: sem permissão para self-update, prosseguindo"
+fi
 
-# Valida composer.json e composer.lock
+# Valida composer.json sem exigir composer.lock
 stage "Composer: validate"
-if ! composer validate --no-check-all --no-check-publish; then
+if ! composer validate --no-check-lock --no-check-publish; then
   stage "Composer: validação falhou"
   exit 1
 fi

@@ -95,7 +95,6 @@ class DeployHandler
             @unlink($legacyLock);
         }
 
-
         // Garante que o script de deploy esteja atualizado antes da execução
         $rootEsc = escapeshellarg($this->rootPath);
         exec("git -C {$rootEsc} fetch --prune origin");
