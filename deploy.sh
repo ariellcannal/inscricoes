@@ -33,6 +33,18 @@ export PATH="/opt/cpanel/composer/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
 mkdir -p "$LOG_DIR" "$LOCK_ROOT" "$COMPOSER_HOME"
 
+# Remoção de lock antigo no diretório do projeto (compatibilidade)
+LEGACY_LOCK="$SCRIPT_DIR/deploy.lock"
+if [ -f "$LEGACY_LOCK" ]; then
+  if exec 9>"$LEGACY_LOCK" && flock -n 9; then
+    rm -f "$LEGACY_LOCK"
+    exec 9>&-
+  else
+    echo "Outro deploy em andamento (lock: $LEGACY_LOCK)"
+    exit 0
+  fi
+fi
+
 # ===================== Helpers =====================
 stage() { echo "[$(date '+%F %T')] $*"; }
 
@@ -122,6 +134,10 @@ git checkout -B "$BRANCH" "origin/$BRANCH"
 stage "Git: reset --hard origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
 
+stage "Git: submodule sync and update"
+git submodule sync --recursive
+git submodule update --init --recursive
+
 # ===================== COMPOSER =====================
 stage "Composer: preferir dist (usar flag na instalação)"
 # Evitar composer config -g para não depender do HOME; a flag --prefer-dist resolve.
@@ -135,8 +151,8 @@ fi
 stage "Composer: clear-cache"
 composer clear-cache || true
 
-stage "Composer: install --no-dev --prefer-dist (timeout)"
-do_timeout composer install --no-interaction --prefer-dist --no-dev
+stage "Composer: install --no-dev --prefer-dist --optimize-autoloader --no-progress (timeout)"
+do_timeout composer install --no-interaction --prefer-dist --no-dev --optimize-autoloader --no-progress
 
 stage "Deploy OK"
 echo "[$(date '+%F %T')] Deploy OK"
