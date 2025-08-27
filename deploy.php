@@ -16,6 +16,9 @@ if (is_readable($envFile)) {
     }
 }
 
+error_reporting(E_ALL);
+ini_set('display_errors', 'On');
+
 $secret = getenv('GITHUB_WEBHOOK_SECRET') ?: '';
 $log = __DIR__ . '/application/logs/deploy.log'; // gitignore!
 $cmd = __DIR__ . '/deploy.sh';

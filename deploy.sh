@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 # Arquivo: deploy.sh (na raiz do projeto)
 set -euo pipefail
 
