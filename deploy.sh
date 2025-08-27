@@ -11,7 +11,7 @@ flock -n 9 || { echo "Outro deploy em andamento"; exit 0; }
 export PATH="/opt/cpanel/composer/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
 PROJECT_DIR="$(pwd)"
-BRANCH="main"
+BRANCH="master"
 LOG_DIR="$PROJECT_DIR/application/logs"
 
 mkdir -p "$LOG_DIR"
