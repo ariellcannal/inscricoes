@@ -148,9 +148,9 @@ git checkout -B "$BRANCH" "origin/$BRANCH"
 stage "Git: reset --hard origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
 
-stage "Git: submodule sync and update"
+stage "Git: submodule sync and update --remote"
 git submodule sync --recursive
-git submodule update --init --recursive
+git submodule update --init --recursive --remote
 
 # ===================== COMPOSER =====================
 stage "Composer: preferir dist (usar flag na instalação)"
@@ -164,6 +164,9 @@ fi
 
 stage "Composer: clear-cache"
 composer clear-cache || true
+
+stage "Composer: self-update"
+composer self-update --2 || true
 
 stage "Composer: install --no-dev --prefer-dist --optimize-autoloader --no-progress (timeout)"
 do_timeout composer install --no-interaction --prefer-dist --no-dev --optimize-autoloader --no-progress

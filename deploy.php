@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * Manipulador de deploy acionado por webhook do GitHub.
@@ -88,17 +89,26 @@ class DeployHandler
             exit('Ignored');
         }
 
-        // Script de deploy possui lock próprio para evitar concorrência
-        // e é disparado em background
-        $lockFile = $this->rootPath . '/deploy.lock';
-        $lock = fopen($lockFile, 'c');
-        if (! flock($lock, LOCK_EX | LOCK_NB)) {
-            http_response_code(202);
-            echo 'Deploy em andamento';
-            exit();
+        // Remove lock legado para evitar bloqueio falso
+        $legacyLock = $this->rootPath . '/deploy.lock';
+        if (file_exists($legacyLock)) {
+            @unlink($legacyLock);
         }
 
-        // Dispara script em background
+        // Garante que o script de deploy esteja atualizado antes da execução
+        $rootEsc = escapeshellarg($this->rootPath);
+        exec("git -C {$rootEsc} fetch --prune origin");
+        $branch = 'master';
+        $output = [];
+        $status = 0;
+        exec("git -C {$rootEsc} rev-parse --verify origin/main >/dev/null 2>&1", $output, $status);
+        if ($status === 0) {
+            $branch = 'main';
+        }
+        exec("git -C {$rootEsc} reset --hard origin/{$branch}");
+
+        // Script de deploy possui lock próprio para evitar concorrência
+        // e é disparado em background
         if (! is_executable($this->deployScript)) {
             @chmod($this->deployScript, 0755);
         }
