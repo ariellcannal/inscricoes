@@ -13,6 +13,9 @@
 		"ariellcannal/pagamentos" : "master",
 		"ariellcannal/logs" : "master"
 	},
+	"require-dev" : {
+		"phpseclib/phpseclib" : "~3.0"
+	},
 	"repositories" : [{
 			"type" : "git",
 			"url" : "git@github.com:ariellcannal/pagamentos.git",
@@ -29,5 +32,8 @@
 		}
 	},
 	"minimum-stability" : "dev",
-	"prefer-stable" : true
+	"prefer-stable" : true,
+	"config" : {
+		"notify-on-install" : false
+	}
 }
