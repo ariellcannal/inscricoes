@@ -7,14 +7,41 @@ class Webhook extends SYS_Controller
     function __construct()
     {
         parent::__construct();
-        error_on();
+    }
+
+    /**
+     * Validate the signature sent by the provider.
+     *
+     * @param string $payload  Raw request body
+     * @param string|null $signatureHeader Header value from X-Hub-Signature
+     *
+     * @return bool
+     */
+    private function validateSignature(string $payload, ?string $signatureHeader): bool
+    {
+        $secret = getenv('PAGARME_WEBHOOK_SECRET');
+
+        if (empty($secret) || empty($signatureHeader)) {
+            return false;
+        }
+
+        $expected = 'sha1=' . hash_hmac('sha1', $payload, $secret);
+
+        return hash_equals($expected, $signatureHeader);
     }
 
     function pagarme($wh = null)
     {
+        $payload = $this->input->raw_input_stream;
         $headers = $this->input->request_headers(TRUE);
+
+        if (! $this->validateSignature($payload, $headers['X-Hub-Signature'] ?? null)) {
+            set_status_header(401);
+            return;
+        }
+
         $post = $this->input->post(NULL, TRUE);
-        $get = $this->input->get(NULL, TRUE);
+        $get  = $this->input->get(NULL, TRUE);
 
         if (! $wh) {
             $this->logs->setLogDir('Webhook/pagarme');
@@ -22,8 +49,8 @@ class Webhook extends SYS_Controller
             $this->logs->write('DEBUG', 'HEADERS' . PHP_EOL . print_r($headers, true));
             $this->logs->write('DEBUG', 'POST' . PHP_EOL . print_r($post, true));
             $this->logs->write('DEBUG', 'GET' . PHP_EOL . print_r($get, true));
-            $this->logs->write('DEBUG', 'INPUT' . PHP_EOL . $this->input->raw_input_stream);
-            $wh = json_decode($this->input->raw_input_stream, true);
+            $this->logs->write('DEBUG', 'INPUT' . PHP_EOL . $payload);
+            $wh = json_decode($payload, true);
         }
 
         if (! empty($wh['data'])) {
