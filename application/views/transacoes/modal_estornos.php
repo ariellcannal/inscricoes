@@ -1,4 +1,5 @@
 <?php
+$ci = &get_instance();
 if (isset($this->result_list)) {
     foreach ($this->result_list as $key => $row) {
         ?>
@@ -11,7 +12,7 @@ if (isset($this->result_list)) {
 			</div>
 			<div class="modal-body">
                                 <form class="form-horizontal">
-                                        <input type="hidden" name="<?=$this->security->get_csrf_token_name();?>" value="<?=$this->security->get_csrf_hash();?>">
+                                        <input type="hidden" name="<?=$ci->security->get_csrf_token_name();?>" value="<?=$ci->security->get_csrf_hash();?>">
                                         <div class="form-group form-material form-group">
 						<input type="text" class="form-control" value="R$ <?php echo number_format($row['operadoras_transacoes.otr_valorBruto'],2,',','.')?>" id="otr_valorCancelamento_<?php echo $row['primary_key']?>" data-type="price" data-reverse="true" value="" data-mask="#.###.##0,00" prefix="" separator="." point="," maxlength="10" decimals="2" autocomplete="off">
 					</div>
