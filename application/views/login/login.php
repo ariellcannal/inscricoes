@@ -3,8 +3,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
 $this->load->view('header');?>
 <body class="d-flex align-items-center py-4 bg-body-tertiary text-center">
 	<main class="form-signin w-100 m-auto">
-    	<form class="auth">
-    		<?php
+        <form class="auth">
+                <input type="hidden" name="<?=$this->security->get_csrf_token_name();?>" value="<?=$this->security->get_csrf_hash();?>" id="csrf_token">
+                <?php
             $alerts_out = '';
             $alerts = $this->session->flashdata('alerts');
             $this->session->unset_userdata('alerts');

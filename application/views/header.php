@@ -10,6 +10,15 @@
 <title><?php isset($title)?$title:'CANNAL Produções'?></title>
     <?php $this->assets->print_view_head()?>
     <?php $this->assets->renderInline();?>
+<script>
+var csrf_token_name = '<?=$this->security->get_csrf_token_name();?>';
+var csrf_token = '<?=$this->security->get_csrf_hash();?>';
+if(window.jQuery){
+    var csrfData = {};
+    csrfData[csrf_token_name] = csrf_token;
+    $.ajaxSetup({data: csrfData});
+}
+</script>
 <?php if(@$closeHead !== false):?>
 </head>
 <?php endif;?>
