@@ -1,0 +1,11 @@
+/.buildpath
+/.dbeaver/
+/.project
+/.hooks
+/.env
+/composer.lock
+/deploy.lock
+/.settings/
+/vendor/
+/writable/
+/deploy.sh

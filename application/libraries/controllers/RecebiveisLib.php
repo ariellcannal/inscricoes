@@ -21,11 +21,10 @@ class RecebiveisLib
             if ($ret['status'] == true) {
                 echo $ret['message'];
             } else {
-                $this->CI->output->set_status_header(400, $ret['message']);
+                return set_status_header(400, $ret['message']);
             }
         } else {
-            set_status_header(400);
-            exit('Recebível não identificado');
+            return set_status_header(400,'Recebível não identificado');
         }
     }
 
@@ -38,8 +37,7 @@ class RecebiveisLib
             if (! $this->CI->recebiveis_model->checkRepasse($this->CI->input->post('rec_id'))) {
                 exit($this->CI->recebiveis_model->desconfirmar($this->CI->input->post('rec_id')));
             } else {
-                set_status_header(400);
-                exit('Impossível desconfirmar, há repasses consolidados');
+                return set_status_header(400,'Impossível desconfirmar, há repasses consolidados');
             }
         } else {
             show_404();
@@ -58,8 +56,7 @@ class RecebiveisLib
         if ($rec_id && $rec = $this->CI->recebiveis_model->getRow($rec_id)) {
             $recebiveis[] = $rec;
         } else if ($rec_id) {
-            set_status_header(400);
-            exit('Recebível não localizado');
+            return set_status_header(400,'Recebível não localizado');
         } else {
             $recebiveis = $this->CI->recebiveis_model->getRecebiveisPendentes();
         }

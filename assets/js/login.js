@@ -9,15 +9,17 @@ var Login = {
 			if (user == "" || pass == "") {
 				alertify.alert('Atenção','Preencha usuário e senha, por favor.', 'warning');
 			} else {
-				$.ajax({
-					url: "/login/auth",
-					data: {
-						user: user,
-						pass: pass
-					},
-					type: "POST",
-					dataType: 'json',
-					success: function(data, status, jqXHR) {
+                                var requestData = {
+                                                user: user,
+                                                pass: pass
+                                };
+                                requestData[csrf_token_name] = csrf_token;
+                                $.ajax({
+                                        url: "/login/auth",
+                                        data: requestData,
+                                        type: "POST",
+                                        dataType: 'json',
+                                        success: function(data, status, jqXHR) {
 						if (data.status == "error" && typeof data.error !== "undefined" && data.error) {
 							alertify.alert(data.error);
 						} else if (data.status == "success" && typeof data.redirect !== "undefined" && data.redirect) {

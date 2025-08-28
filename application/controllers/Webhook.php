@@ -62,16 +62,14 @@ class Webhook extends SYS_Controller
 
             if (strpos($wh['type'], 'charge') !== null) {
                 if (! $transacoes = $this->operadoras_model->getTransacaoPorOperadoraId($wh['data']['id'])) {
-                    set_status_header(400);
-                    return;
+                    return set_status_header(400,'Transação não localizada');
                 } else {
                     $this->load->library('controllers/TransacoesLib', null, 'transacoes');
                     $this->load->library('controllers/InscricoesLib', null, 'inscricoes');
                     foreach ($transacoes as $otr) {
                         $transacao = new OperadorasTransacoesEntity($otr);
                         if (! $this->transacoes->sincronizar($transacao->getId())) {
-                            set_status_header(400);
-                            return;
+                            return set_status_header(400,'Transação não localizada');
                         }
                         if ($wh['type'] == 'charge.paid') {
                             $this->inscricoes->email_inscricao($transacao->getInscricao(), 'pagamento_confirmado', $transacao);
@@ -85,8 +83,7 @@ class Webhook extends SYS_Controller
             } else if ($wh['type'] == 'payable.paid') {
                 // RECEBIVEL RECEBIDO
                 if (! $recebiveis = $this->recebiveis_model->getRecebiveisPorOperadoraId($wh['data']['id']) && ! $recebiveis = $this->recebiveis_model->getRecebiveisPorOperadoraId($wh['data']['gateway_id'])) {
-                    set_status_header(400);
-                    return;
+                    return set_status_header(400,'Recebível não localizado');
                 } else {
                     $this->load->library('controllers/RecebiveisLib', null, 'recebiveis');
                     foreach ($recebiveis as $rec) {
@@ -96,6 +93,6 @@ class Webhook extends SYS_Controller
                 }
             }
         }
-        set_status_header(200);
+        return set_status_header(200,'OK');
     }
 }

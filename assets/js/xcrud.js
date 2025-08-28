@@ -20,14 +20,16 @@ var Xcrud = {
 	parent_container: null,
 	close_modal: false,
 	request: function(container, data, success_callback) {
+		var requestData = {
+			"xcrud": data
+		};
+		requestData[csrf_token_name] = csrf_token;
 		$.ajax({
 			type: "post",
 			url: Xcrud.config('url'),
 			dataType: "html",
 			cache: false,
-			data: {
-				"xcrud": data
-			},
+			data: requestData,
 			beforeSend: function() {
 				$(document).trigger("xcrudbeforerequest", [container, data]);
 				Xcrud.close_modal = data.close;
