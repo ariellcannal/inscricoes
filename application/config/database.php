@@ -97,12 +97,26 @@ $db['development'] = array(
 
 $db['production'] = $db['development'];
 $db['production'] = array_merge($db['production'],array(
-		'hostname' => 'localhost',
-		'username' => 'cannal_inscricoe',
-		'password' => 'YnGF5O.jQE~W',
-		'database' => 'cannal_inscricoes',
+                'hostname' => 'localhost',
+                'username' => 'cannal_inscricoe',
+                'password' => 'YnGF5O.jQE~W',
+                'database' => 'cannal_inscricoes',
         'db_debug' => false
 ));
+
+// Ajusta conexão via túnel SSH em ambiente de desenvolvimento
+if (ENVIRONMENT === 'development') {
+    $db['production'] = array_merge($db['production'], [
+        'hostname' => getenv('PROD_SSH_LOCAL_HOST') ?: '127.0.0.1',
+        'port'     => getenv('PROD_SSH_LOCAL_PORT') ?: 3307,
+        'ssh_host' => getenv('PROD_SSH_HOST'),
+        'ssh_port' => getenv('PROD_SSH_PORT') ?: 22,
+        'ssh_user' => getenv('PROD_SSH_USER'),
+        'ssh_key'  => getenv('PROD_SSH_KEY'),
+        'ssh_remote_host' => getenv('PROD_SSH_REMOTE_HOST') ?: '127.0.0.1',
+        'ssh_remote_port' => getenv('PROD_SSH_REMOTE_PORT') ?: 3306,
+    ]);
+}
 
 
 define('APP_DBHOST', $db[$active_group]['hostname']);
