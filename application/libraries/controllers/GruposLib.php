@@ -31,8 +31,7 @@ class GruposLib
                     'grupos' => $r
                 ]));
             }
-            set_status_header(204);
-            exit();
+            return set_status_header(204);
         }
         show_404();
     }
@@ -165,8 +164,7 @@ class GruposLib
             }
             $this->CI->load->view('presenca/presenca.php', $this->CI->vars);
         } else {
-            set_status_header(200);
-            exit('Não existe nenhum grupo acontecendo agora');
+            return set_status_header(200,'Não existe nenhum grupo acontecendo agora');
         }
     }
 }

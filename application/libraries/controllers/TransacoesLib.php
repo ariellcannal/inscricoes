@@ -170,20 +170,16 @@ class TransacoesLib
 
             if (ENVIRONMENT == 'production') {
                 if ($otr['otr_confirmada'] == 0) {
-                    set_status_header(400);
-                    exit('Não é possível estornar essa transação.');
+                    return set_status_header(400,'Não é possível estornar essa transação.');
                 }
                 if (round($valor, 2) <= 0) {
-                    set_status_header(400);
-                    exit('Informe o valor corretamente');
+                    return set_status_header(400,'Informe o valor corretamente');
                 }
                 if (round($otr['otr_valorBruto'], 2) < round($valor, 2)) {
-                    set_status_header(400);
-                    exit('O valor informado é maior que a transação.');
+                    return set_status_header(400,'O valor informado é maior que a transação.');
                 }
                 if ($otr['otr_operadoraID'] == "") {
-                    set_status_header(400);
-                    exit('Transação não identificada.');
+                    return set_status_header(400,'Transação não identificada.');
                 }
             }
 
@@ -208,8 +204,7 @@ class TransacoesLib
                 $this->CI->load->library('controllers/InscricoesLib', null, 'inscricoes');
                 $this->CI->inscricoes->email_inscricao($otr['otr_inscricao'], 'confirmar_estorno', $transacao);
             } else {
-                set_status_header(400);
-                exit('Não foi possível estornar esse pagamento ' . $this->CI->logs->getLogName());
+                return set_status_header(400,'Não foi possível estornar esse pagamento ' . $this->CI->logs->getLogName());
             }
         } else {
             show_404();

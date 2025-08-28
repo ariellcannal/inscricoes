@@ -41,8 +41,7 @@ class RepassesLib
                 $this->CI->mail->message($mensagem);
                 if (! $this->CI->mail->send()) {}
             } else if (! $rep) {
-                set_status_header(400);
-                exit('Repasse não efetivado');
+                return set_status_header(400,'Repasse não efetivado');
             }
         } else {
             show_404();

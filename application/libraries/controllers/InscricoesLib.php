@@ -111,11 +111,9 @@ class InscricoesLib
         $this->CI->logs->setLogName('ALU_' . $vars['alu']['alu_id'] . '_' . time(), true);
 
         if (empty($vars['ins'])) {
-            set_status_header(404);
-            exit('Essa inscrição não foi localizada');
+            return set_status_header(404,'Essa inscrição não foi localizada');
         } else if (! empty($vars['ins']['ins_aprovada'])) {
-            // set_status_header(400);
-            // exit('Essa inscrição já foi aprovada');
+            // return set_status_header(400,'Essa inscrição já foi aprovada');
         }
         $ins_update['ins_aprovada'] = date('Y-m-d H:i:s');
         if (! empty($vars['ins']['ins_tempData'])) {

@@ -22,8 +22,7 @@ class Ajax extends SYS_Controller
     public function consultaCEP()
     {
         if (empty($this->input->post('cep')) || strlen($this->input->post('cep')) != 8) {
-            set_status_header(400);
-            exit('CEP Inválido');
+            return set_status_header(400,'CEP Inválido');
         } else {
             $c = curl_init();
             curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);

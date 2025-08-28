@@ -312,12 +312,10 @@ class Inscricoes extends SYS_Controller
         $this->load->helper('inscricoes_helper');
 
         if (! empty($ins_id) && ! $ins = $this->inscricoes_model->getInscricaoCompleta($ins_id)) {
-            set_status_header(401);
-            exit('Inscrição não encontrada');
+            return set_status_header(401,'Inscrição não encontrada');
         }
         if (! empty($ins['ins_valorDevido']) && (int) $ins['ins_valorDevido'] <= 0) {
-            set_status_header(401);
-            exit('Inscrição quitada');
+            return set_status_header(401,'Inscrição quitada');
         }
 
         global $processoSeletivo;
@@ -340,16 +338,13 @@ class Inscricoes extends SYS_Controller
         $this->vars['grp']['grp_diaSemana'] = implode(' e ', $grp_diaSemana);
         
         if (! $this->vars['grp']) {
-            set_status_header(404);
-            exit('Últimas vagas, tem muita gente por aqui. Tente novamente em instantes');
+            return set_status_header(404,'Últimas vagas, tem muita gente por aqui. Tente novamente em instantes');
         } elseif (! $ins_id && ($this->vars['grp']['grp_ativo'] != '1' || $this->vars['grp']['grp_inscricoesAbertas'] != '1')) {
-            set_status_header(401);
-            exit('Inscrições encerradas');
+            return set_status_header(401,'Inscrições encerradas');
         }
 
         if (! $ins_id && $this->vars['grp']['grp_maximoInscricoes'] > 0 && $this->vars['grp']['grp_maximoInscricoes'] <= count($this->grupos_model->getAlunosInscritos($this->vars['grp']['grp_id']))) {
-            set_status_header(401);
-            exit('Todas as vagas para essa turma já foram preenchidas');
+            return set_status_header(401,'Todas as vagas para essa turma já foram preenchidas');
         }
 
         if ($this->vars['grp']['grp_processoSeletivo'] == '1') {
