@@ -20,4 +20,13 @@
                         <button type="submit" class="btn btn-primary">Totalizar Inscrições de Grupos Ativos</button>
                 </div>
         </form>
+
+        <?php if (ENVIRONMENT === 'development'): ?>
+        <form action="/config/importDatabase" method="post">
+                <input type="hidden" name="<?=$this->security->get_csrf_token_name();?>" value="<?=$this->security->get_csrf_hash();?>">
+                <div class="input-group mb-3">
+                        <button type="submit" class="btn btn-danger">Importar Banco de Produção</button>
+                </div>
+        </form>
+        <?php endif; ?>
 </div>
