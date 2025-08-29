@@ -55,9 +55,37 @@ class Config extends SYS_Controller
         }
 
         // Carrega configurações dos bancos
-        $this->config->load('database', true);
-        $prod = $this->config->item('production', 'database');
-        $dev  = $this->config->item('development', 'database');
+        $errorLevel = error_reporting();
+        error_reporting($errorLevel & ~E_NOTICE & ~E_WARNING);
+        include APPPATH . 'config/database.php';
+        error_reporting($errorLevel);
+        $prod = $db['production'] ?? null;
+        $dev  = $db['development'] ?? null;
+
+        if ($prod === null || $dev === null) {
+            $_SESSION['alert_error'][] = 'Configurações de banco não encontradas.';
+            redirect('/config/acoes');
+            return;
+        }
+
+        $requiredProd = ['database','ssh_key','ssh_port','port','ssh_remote_host','ssh_remote_port','ssh_user','ssh_host','hostname','username','password'];
+        $requiredDev  = ['hostname','username','password','database'];
+
+        foreach ($requiredProd as $key) {
+            if (empty($prod[$key])) {
+                $_SESSION['alert_error'][] = 'Configurações do banco de produção incompletas.';
+                redirect('/config/acoes');
+                return;
+            }
+        }
+
+        foreach ($requiredDev as $key) {
+            if (empty($dev[$key])) {
+                $_SESSION['alert_error'][] = 'Configurações do banco de desenvolvimento incompletas.';
+                redirect('/config/acoes');
+                return;
+            }
+        }
 
         // Define nome e caminho do arquivo de dump
         $fileName = date('Y.m.d-H.i-') . $prod['database'] . '.sql';
