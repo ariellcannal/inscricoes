@@ -20,6 +20,9 @@ class Teste extends SYS_Controller
     public function index()
     {
         return;
+        print $this->usuarios_model->criptPass('A648h722c#');
+        return;
+
         $this->initMail();
         $this->mail->SMTPDebug = 1;
         $this->mail->addAddress('ariell@cannal.com.br');
@@ -27,18 +30,14 @@ class Teste extends SYS_Controller
         $this->mail->message('Teste');
         exit((string) $this->mail->send());
         return;
+
         $this->load->view('teste.html');
         return;
-        $this->initMail();
-        $this->mail->SMTPDebug = 1;
-        $this->mail->addAddress('ariell@cannal.com.br');
-        $this->mail->subject('Teste');
-        $this->mail->message('Teste');
-        exit((string) $this->mail->send());
-        exit(crypt('A648h722c#', $this->config->item('encryption_key')));
+
         $log = new Logs('teste\test:sde', 'parac:unde');
         $log->write('debug', 'teste');
         exit();
+
         $this->load->model('alunos_model');
         $this->load->model('operadoras_model');
         $alu = new Cliente($this->alunos_model->getRow(117), 'alu_');

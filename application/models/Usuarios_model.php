@@ -33,17 +33,6 @@ class Usuarios_model extends SYS_Model
         $stored = $user['usr_senha'];
 
         if (password_verify($senha, $stored)) {
-            if (password_needs_rehash($stored, PASSWORD_DEFAULT)) {
-                $updated = $this->updateSenha($user['usr_id'], $senha);
-                $user['usr_senha'] = $updated['usr_senha'];
-            }
-            return $user;
-        }
-
-        $legacy = crypt($senha, $this->config->item('encryption_key'));
-        if (hash_equals($legacy, $stored) || password_verify($legacy, $stored)) {
-            $updated = $this->updateSenha($user['usr_id'], $senha);
-            $user['usr_senha'] = $updated['usr_senha'];
             return $user;
         }
 
