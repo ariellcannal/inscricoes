@@ -54,38 +54,24 @@ class Config extends SYS_Controller
             show_404();
         }
 
-        // Carrega configurações dos bancos
-        $errorLevel = error_reporting();
-        error_reporting($errorLevel & ~E_NOTICE & ~E_WARNING);
-        include APPPATH . 'config/database.php';
-        error_reporting($errorLevel);
-        $prod = $db['production'] ?? null;
-        $dev  = $db['development'] ?? null;
-
-        if ($prod === null || $dev === null) {
-            $_SESSION['alert_error'][] = 'Configurações de banco não encontradas.';
-            redirect('/config/acoes');
-            return;
-        }
-
-        $requiredProd = ['database','ssh_key','ssh_port','port','ssh_remote_host','ssh_remote_port','ssh_user','ssh_host','hostname','username','password'];
-        $requiredDev  = ['hostname','username','password','database'];
-
-        foreach ($requiredProd as $key) {
-            if (empty($prod[$key])) {
-                $_SESSION['alert_error'][] = 'Configurações do banco de produção incompletas.';
-                redirect('/config/acoes');
-                return;
-            }
-        }
-
-        foreach ($requiredDev as $key) {
-            if (empty($dev[$key])) {
-                $_SESSION['alert_error'][] = 'Configurações do banco de desenvolvimento incompletas.';
-                redirect('/config/acoes');
-                return;
-            }
-        }
+        $prod = array(
+            'hostname' => getenv('db.prd.hostname'),
+            'username' => getenv('db.prd.username'),
+            'password' => getenv('db.prd.password'),
+            'database' => getenv('db.prd.database'),
+            'ssh_host' => getenv('db.prd.ssh_host'),
+            'ssh_user' => getenv('db.prd.ssh_user'),
+            'ssh_pass' => getenv('db.prd.ssh_pass'),
+            'ssh_port' => getenv('db.prd.ssh_port'),
+            'ssh_key'  => getenv('db.prd.ssh_key'),
+        );
+        
+        $dev = array(
+            'hostname' => getenv('db.dev.hostname'),
+            'username' => getenv('db.dev.username'),
+            'password' => getenv('db.dev.password'),
+            'database' => getenv('db.dev.database')
+        );
 
         // Define nome e caminho do arquivo de dump
         $fileName = date('Y.m.d-H.i-') . $prod['database'] . '.sql';
@@ -94,20 +80,18 @@ class Config extends SYS_Controller
         // Abre túnel SSH para o banco de produção
         $sshCmd = sprintf(
             'ssh -i %s -p %s -L %s:%s:%s %s -N >/dev/null 2>&1 & echo $!',
-            escapeshellarg($prod['ssh_key']),
+            escapeshellarg(FCPATH .$prod['ssh_key']),
             escapeshellarg($prod['ssh_port']),
-            escapeshellarg($prod['port']),
-            escapeshellarg($prod['ssh_remote_host']),
-            escapeshellarg($prod['ssh_remote_port']),
+            escapeshellarg(3307),
+            escapeshellarg('127.0.0.1'),
+            escapeshellarg(3306),
             escapeshellarg($prod['ssh_user'] . '@' . $prod['ssh_host'])
         );
         $tunnelPid = trim(shell_exec($sshCmd));
 
         // Caso o túnel não seja estabelecido, aborta
         if ($tunnelPid === '') {
-            $_SESSION['alert_error'][] = 'Falha ao estabelecer túnel SSH.';
-            redirect('/config/acoes');
-            return;
+            exit('Falha ao estabelecer túnel SSH.');
         }
 
         // Aguarda estabilização do túnel
