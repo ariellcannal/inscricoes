@@ -5,6 +5,7 @@ $this->load->view('header');?>
 	<main class="form-signin w-100 m-auto">
         <form class="auth">
                 <input type="hidden" name="<?=$this->security->get_csrf_token_name();?>" value="<?=$this->security->get_csrf_hash();?>" id="csrf_token">
+                <input type="hidden" id="redirect_to" value="<?= isset($redirect_to) ? htmlspecialchars($redirect_to, ENT_QUOTES, 'UTF-8') : '' ?>">
                 <?php
             $alerts_out = '';
             $alerts = $this->session->flashdata('alerts');

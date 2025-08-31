@@ -191,14 +191,26 @@ class SYS_Controller extends CI_Controller
         };
     }
 
-    function checkLogin()
+    /**
+     * Verifica se usuário está autenticado.
+     *
+     * Redireciona para o logout com a URL atual, permitindo retorno após login.
+     *
+     * @return void
+     */
+    public function checkLogin(): void
     {
         if (! $this->session->userdata('usr_id')) {
-            if ($this->input->is_ajax_request()) {
-                exit('<script>window.location="/sair"</script>');
-            } else {
-                redirect('/sair');
+            $currentUrl = current_url();
+            $queryString = $this->input->server('QUERY_STRING');
+            if ($queryString) {
+                $currentUrl .= '?' . $queryString;
             }
+            $logoutUrl = '/sair?redirect_to=' . rawurlencode($currentUrl);
+            if ($this->input->is_ajax_request()) {
+                exit('<script>window.location="' . $logoutUrl . '"</script>');
+            }
+            redirect($logoutUrl);
         }
     }
 
