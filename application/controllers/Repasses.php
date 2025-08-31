@@ -10,7 +10,12 @@ class Repasses extends SYS_Controller
         $this->load->library('controllers/RepassesLib', null, 'repasses');
     }
 
-    public function index()
+    /**
+     * Exibe listagem de repasses.
+     *
+     * @return void
+     */
+    public function index(): void
     {
         $this->assets->js('repasses.js');
         $this->assets->js('https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js', true);
@@ -27,7 +32,7 @@ class Repasses extends SYS_Controller
         }
         $xcrud->set_var('after_task', 'list');
 
-        $xcrud->set_lang('add', 'Consolidar');
+        $xcrud->set_lang('add', lang('action_consolidar'));
 
         $xcrud->subselect('desc_pix', 'SELECT CONCAT("GRUPOS ",usr_nome)');
 

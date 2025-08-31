@@ -18,11 +18,12 @@ function initInscricoes() {
 			success: function(response, status, jqXHR) {
 
 			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				Xcrud.show_error(jqXHR.statusText);
-				console.log(jqXHR.statusText);
-				console.log(jqXHR.responseText);
-			}
+                        error: function(jqXHR, textStatus, errorThrown) {
+                                const message = decodeURIComponent(escape(jqXHR.statusText));
+                                Xcrud.show_error(message);
+                                console.log(message);
+                                console.log(jqXHR.responseText);
+                        }
 		});
 		$('.whatsAppMsgRow').data('msg', msgWhatsApp);
 		$('.whatsAppMsgRow').attr('data-msg', msgWhatsApp);
@@ -41,11 +42,12 @@ function initInscricoes() {
 				Xcrud.show_success(response);
 				Xcrud.reload();
 			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				Xcrud.show_error(jqXHR.statusText);
-				console.log(jqXHR.statusText);
-				console.log(jqXHR.responseText);
-			}
+                        error: function(jqXHR, textStatus, errorThrown) {
+                                const message = decodeURIComponent(escape(jqXHR.statusText));
+                                Xcrud.show_error(message);
+                                console.log(message);
+                                console.log(jqXHR.responseText);
+                        }
 		});
 	});
 	$('.ins_tag').off('click').click(function() {

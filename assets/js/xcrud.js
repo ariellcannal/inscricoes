@@ -58,11 +58,12 @@ var Xcrud = {
 					}
 				}
 			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				Xcrud.show_error(Xcrud.lang('undefined_error'))
-				console.log(jqXHR.statusText);
-				console.log(jqXHR.responseText);
-			},
+                        error: function(jqXHR, textStatus, errorThrown) {
+                                Xcrud.show_error(Xcrud.lang('undefined_error'))
+                                const message = decodeURIComponent(escape(jqXHR.statusText));
+                                console.log(message);
+                                console.log(jqXHR.responseText);
+                        },
 			complete: function(jqXHR) {
 				$(document).trigger("xcrudafterrequest", [container, data]);
 				Xcrud.hide_progress(container);

@@ -6,10 +6,11 @@ function initRepasses() {
 			success: function(response, status, jqXHR) {
 				Xcrud.reload();
 			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				console.log(jqXHR.statusText);
-				console.log(jqXHR.responseText);
-			}
+                        error: function(jqXHR, textStatus, errorThrown) {
+                                const message = decodeURIComponent(escape(jqXHR.statusText));
+                                console.log(message);
+                                console.log(jqXHR.responseText);
+                        }
 		});
 	});
 	$('.efetivar').off('click').click(function() {
@@ -24,11 +25,12 @@ function initRepasses() {
 				console.log(jqXHR.responseText);
 				Xcrud.reload();
 			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				console.log(jqXHR.statusText);
-				console.log(jqXHR.responseText);
-				Xcrud.show_error(jqXHR.responseText);
-			}
+                        error: function(jqXHR, textStatus, errorThrown) {
+                                const message = decodeURIComponent(escape(jqXHR.statusText));
+                                console.log(message);
+                                console.log(jqXHR.responseText);
+                                Xcrud.show_error(message);
+                        }
 		});
 	});
 	$('.desefetivar').off('click').click(function() {
@@ -41,11 +43,12 @@ function initRepasses() {
 			success: function(response, status, jqXHR) {
 				Xcrud.reload();
 			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				console.log(jqXHR.statusText);
-				console.log(jqXHR.responseText);
-				Xcrud.show_error(jqXHR.responseText);
-			}
+                        error: function(jqXHR, textStatus, errorThrown) {
+                                const message = decodeURIComponent(escape(jqXHR.statusText));
+                                console.log(message);
+                                console.log(jqXHR.responseText);
+                                Xcrud.show_error(message);
+                        }
 		});
 	});
 	$('.gerar_lote').off('click').click(function() {

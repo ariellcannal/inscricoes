@@ -31,10 +31,11 @@ function checkCPF() {
 					Xcrud.show_progress($(container).closest(".xcrud"));
 				},
 				timeout: 5000,
-				error: function(jqXHR, textStatus, errorThrown) {
-					console.log(jqXHR.statusText);
-					console.log(jqXHR.responseText);
-				},
+                                error: function(jqXHR, textStatus, errorThrown) {
+                                        const message = decodeURIComponent(escape(jqXHR.statusText));
+                                        console.log(message);
+                                        console.log(jqXHR.responseText);
+                                },
 				complete: function() {
 					Xcrud.hide_progress($(container).closest(".xcrud"));
 				},

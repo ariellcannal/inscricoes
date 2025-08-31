@@ -20,17 +20,18 @@ class SYS_Controller extends CI_Controller
         date_default_timezone_set(config_item('time_reference'));
 
         $this->load->database();
+        $this->lang->load('app', APP_LANG);
 
         $this->vars['menu'] = [
-            'transacoes' => 'Transações',
-            'recebiveis' => 'Recebíveis',
-            'inscricoes' => 'Inscrições',
-            'repasses' => 'Repasses',
-            'grupos' => 'Grupos',
-            'alunos' => 'Alunos',
-            'presenca' => 'Presença',
-            'usuarios' => 'Usuários',
-            'config' => 'Config'
+            'transacoes' => lang('menu_transacoes'),
+            'recebiveis' => lang('menu_recebiveis'),
+            'inscricoes' => lang('menu_inscricoes'),
+            'repasses' => lang('menu_repasses'),
+            'grupos' => lang('menu_grupos'),
+            'alunos' => lang('menu_alunos'),
+            'presenca' => lang('menu_presenca'),
+            'usuarios' => lang('menu_usuarios'),
+            'config' => lang('menu_config')
         ];
 
         if ($this->session->userdata('usr_id') && array_key_exists($this->uri->segment(1), $this->vars['menu'])) {

@@ -298,7 +298,14 @@ class Inscricoes extends SYS_Controller
         $this->load->view('index.php', $this->vars);
     }
 
-    public function inscricao($grp_id_slug = null, $ins_id = null)
+    /**
+     * Exibe formulário de inscrição.
+     *
+     * @param string|null $grp_id_slug Slug ou ID do grupo.
+     * @param int|null    $ins_id      ID da inscrição.
+     * @return void
+     */
+    public function inscricao(?string $grp_id_slug = null, ?int $ins_id = null): void
     {
         $this->assets->css('../../assets/plugins/card/card.css');
         $this->assets->js('../../assets/plugins/card/jquery.card.js');
@@ -312,10 +319,12 @@ class Inscricoes extends SYS_Controller
         $this->load->helper('inscricoes_helper');
 
         if (! empty($ins_id) && ! $ins = $this->inscricoes_model->getInscricaoCompleta($ins_id)) {
-            return set_status_header(401,'Inscrição não encontrada');
+            set_status_header(401, lang('error_inscricao_nao_encontrada'));
+            return;
         }
         if (! empty($ins['ins_valorDevido']) && (int) $ins['ins_valorDevido'] <= 0) {
-            return set_status_header(401,'Inscrição quitada');
+            set_status_header(401, lang('error_inscricao_quitada'));
+            return;
         }
 
         global $processoSeletivo;
@@ -338,13 +347,16 @@ class Inscricoes extends SYS_Controller
         $this->vars['grp']['grp_diaSemana'] = implode(' e ', $grp_diaSemana);
         
         if (! $this->vars['grp']) {
-            return set_status_header(404,'Últimas vagas, tem muita gente por aqui. Tente novamente em instantes');
+            set_status_header(404, lang('error_ultimas_vagas_tente_novamente'));
+            return;
         } elseif (! $ins_id && ($this->vars['grp']['grp_ativo'] != '1' || $this->vars['grp']['grp_inscricoesAbertas'] != '1')) {
-            return set_status_header(401,'Inscrições encerradas');
+            set_status_header(401, lang('error_inscricoes_encerradas'));
+            return;
         }
 
         if (! $ins_id && $this->vars['grp']['grp_maximoInscricoes'] > 0 && $this->vars['grp']['grp_maximoInscricoes'] <= count($this->grupos_model->getAlunosInscritos($this->vars['grp']['grp_id']))) {
-            return set_status_header(401,'Todas as vagas para essa turma já foram preenchidas');
+            set_status_header(401, lang('error_turma_completa'));
+            return;
         }
 
         if ($this->vars['grp']['grp_processoSeletivo'] == '1') {
@@ -427,8 +439,8 @@ class Inscricoes extends SYS_Controller
         }
 
         $xcrud->set_var('after_task', 'view');
-        $xcrud->set_lang('save_edit', 'Confirmar Inscrição');
-        $xcrud->set_lang('add_image', 'Selecionar Foto');
+        $xcrud->set_lang('save_edit', lang('action_confirmar_inscricao'));
+        $xcrud->set_lang('add_image', lang('action_selecionar_foto'));
 
         $xcrud->create_field('fop', 'select', null, $formas);
         $xcrud->create_field('rec_cartao', 'text', null, [

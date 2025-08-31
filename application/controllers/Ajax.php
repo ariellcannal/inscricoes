@@ -19,10 +19,16 @@ class Ajax extends SYS_Controller
         $this->output->set_output(Xcrud::get_requested_instance());
     }
 
-    public function consultaCEP()
+    /**
+     * Consulta endereço por CEP.
+     *
+     * @return void
+     */
+    public function consultaCEP(): void
     {
         if (empty($this->input->post('cep')) || strlen($this->input->post('cep')) != 8) {
-            return set_status_header(400,'CEP Inválido');
+            set_status_header(400, lang('error_cep_invalido'));
+            return;
         } else {
             $c = curl_init();
             curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
