@@ -1,7 +1,9 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class GruposDatasEntity extends _Entity
+require_once __DIR__ . '/../core/SYS_Entity.php';
+
+class GruposDatasEntity extends \SYS_Entity
 {
 
     protected $prefix = 'grd_';

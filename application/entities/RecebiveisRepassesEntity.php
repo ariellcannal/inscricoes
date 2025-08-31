@@ -1,7 +1,9 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class RecebiveisRepassesEntity extends _Entity
+require_once __DIR__ . '/../core/SYS_Entity.php';
+
+class RecebiveisRepassesEntity extends \SYS_Entity
 {
 
     protected string $prefix = 'rre_';

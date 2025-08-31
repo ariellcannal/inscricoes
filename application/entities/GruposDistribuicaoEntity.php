@@ -1,7 +1,9 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class GruposDistribuicaoEntity extends _Entity
+require_once __DIR__ . '/../core/SYS_Entity.php';
+
+class GruposDistribuicaoEntity extends \SYS_Entity
 {
 
     protected $prefix = 'dst_';

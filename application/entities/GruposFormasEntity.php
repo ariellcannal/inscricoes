@@ -1,7 +1,9 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class GruposFormasEntity extends _Entity
+require_once __DIR__ . '/../core/SYS_Entity.php';
+
+class GruposFormasEntity extends \SYS_Entity
 {
 
     protected $prefix = 'gfp_';

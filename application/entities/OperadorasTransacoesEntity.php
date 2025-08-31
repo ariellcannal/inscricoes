@@ -1,7 +1,9 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class OperadorasTransacoesEntity extends _Entity
+require_once __DIR__ . '/../core/SYS_Entity.php';
+
+class OperadorasTransacoesEntity extends \SYS_Entity
 {
 
     protected $table = 'operadoras_transacoes';

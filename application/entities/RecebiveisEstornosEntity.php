@@ -1,7 +1,9 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class RecebiveisEstornosEntity extends _Entity
+require_once __DIR__ . '/../core/SYS_Entity.php';
+
+class RecebiveisEstornosEntity extends \SYS_Entity
 {
 
     protected $prefix = 'res_';

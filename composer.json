@@ -23,11 +23,11 @@
 			"name" : "logs"
 		}
 	],
-	"autoload" : {
-		"psr-4" : {
-			"CANNALInscricoes\\Entities\\" : "application/entities/"
-		}
-	},
+        "autoload" : {
+                "psr-4" : {
+                        "CANNALInscricoes\\Entities\\" : "application/entities/"
+                }
+        },
 	"minimum-stability" : "dev",
 	"prefer-stable" : true,
 	"config" : {

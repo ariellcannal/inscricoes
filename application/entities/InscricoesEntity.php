@@ -1,7 +1,9 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class InscricoesEntity extends _Entity
+require_once __DIR__ . '/../core/SYS_Entity.php';
+
+class InscricoesEntity extends \SYS_Entity
 {
 
     protected string $table = 'inscricoes';
