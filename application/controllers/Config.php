@@ -77,41 +77,26 @@ class Config extends SYS_Controller
         $fileName = date('Y.m.d-H.i-') . $prod['database'] . '.sql';
         $filePath = FCPATH . 'sql/' . $fileName;
 
-        // Abre túnel SSH para o banco de produção
-        $sshCmd = sprintf(
-            'ssh -i %s -p %s -L %s:%s:%s %s -N >/dev/null 2>&1 & echo $!',
-            escapeshellarg(FCPATH .$prod['ssh_key']),
+        $sshDumpCmd = sprintf(
+            'ssh -i %s -p %s %s@%s ' .
+            escapeshellarg(
+            // este é o comando que roda NO REMOTO:
+            'mysqldump -h127.0.0.1 -P3306 -u' . escapeshellarg($prod['username']) .
+            ' --ssl-mode=REQUIRED --set-gtid-purged=OFF --password=' . escapeshellarg($prod['password']) . ' ' .
+            escapeshellarg($prod['database'])
+            ) .
+            ' > %s',
+            escapeshellarg(FCPATH . $prod['ssh_key']),
             escapeshellarg($prod['ssh_port']),
-            escapeshellarg(3307),
-            escapeshellarg('127.0.0.1'),
-            escapeshellarg(3306),
-            escapeshellarg($prod['ssh_user'] . '@' . $prod['ssh_host'])
-        );
-        $tunnelPid = trim(shell_exec($sshCmd));
-
-        // Caso o túnel não seja estabelecido, aborta
-        if ($tunnelPid === '') {
-            exit('Falha ao estabelecer túnel SSH.');
-        }
-
-        // Aguarda estabilização do túnel
-        sleep(1);
-
-        // Realiza dump do banco de produção através do túnel
-        $dumpCmd = sprintf(
-            'mysqldump -h%s -P%s -u%s --password=%s %s > %s',
-            escapeshellarg($prod['hostname']),
-            escapeshellarg($prod['port']),
-            escapeshellarg($prod['username']),
-            escapeshellarg($prod['password']),
-            escapeshellarg($prod['database']),
+            escapeshellarg($prod['ssh_user']),
+            escapeshellarg($prod['ssh_host']),
             escapeshellarg($filePath)
-        );
-        exec($dumpCmd);
-
-        // Encerra túnel SSH
-        exec('kill ' . escapeshellarg($tunnelPid) . ' 2>/dev/null');
-
+            );
+        exec($sshDumpCmd, $dumpOutput, $dumpStatus);
+        if ($dumpStatus !== 0) {
+            throw new Error('Falha ao gerar dump do banco de produção (via SSH).');
+        }
+        
         // Importa dump no banco de desenvolvimento
         $importCmd = sprintf(
             'mysql -h%s -u%s --password=%s %s < %s',
@@ -121,8 +106,11 @@ class Config extends SYS_Controller
             escapeshellarg($dev['database']),
             escapeshellarg($filePath)
         );
-        exec($importCmd);
-
+        exec($importCmd, $importOutput, $importStatus);
+        if ($importStatus !== 0) {
+            throw new Error('Falha ao importar dump no banco de desenvolvimento.');
+        }
+        
         // Informa sucesso e retorna à tela de ações
         $_SESSION['alert_success'][] = 'Banco de produção importado.';
         redirect('/config/acoes');

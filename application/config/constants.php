@@ -14,6 +14,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 defined('SHOW_DEBUG_BACKTRACE') OR define('SHOW_DEBUG_BACKTRACE', TRUE);
 
 /*
+ |--------------------------------------------------------------------------
+ | Admin E-mail
+ |--------------------------------------------------------------------------
+ |
+ | E-mail usado para notificações sobre comportamento do servidor.
+ */
+defined('ADMIN_ADDRESS') OR define('ADMIN_ADDRESS', getenv('admin_address'));
+
+/*
 |--------------------------------------------------------------------------
 | File and Directory Modes
 |--------------------------------------------------------------------------
