@@ -19,7 +19,7 @@ class Teste extends SYS_Controller
 
     public function index()
     {
-        return;
+        return ;
         print $this->usuarios_model->criptPass('A648h722c#');
         return;
 

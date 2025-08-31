@@ -14,7 +14,7 @@ class TransacoesLib
         $this->CI = &get_instance();
     }
 
-    public function sincronizar(array|int|null $otr_id = null, int $dias = 7, bool $echo = true): int|null|false
+    public function sincronizar(array|int|null $otr_id = null, ?int $dias = 7, ?bool $echo = true): int|null|false
     {
         $transacoes_atualizadas = 0;
         $recebiveis_atualizados = 0;
