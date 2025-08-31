@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class FeriadosEntity extends _Entity
+class FeriadosEntity extends \SYS_Entity
 {
 
     protected string $table = 'feriados';

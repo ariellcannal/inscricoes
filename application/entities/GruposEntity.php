@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class GruposEntity extends _Entity
+class GruposEntity extends \SYS_Entity
 {
 
     protected string $table = 'grupos';

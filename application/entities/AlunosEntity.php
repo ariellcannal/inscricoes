@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class AlunosEntity extends _Entity
+class AlunosEntity extends \SYS_Entity
 {
 
     protected string $table = 'alunos';

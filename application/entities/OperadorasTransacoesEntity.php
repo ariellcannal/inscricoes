@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class OperadorasTransacoesEntity extends _Entity
+class OperadorasTransacoesEntity extends \SYS_Entity
 {
 
     protected $table = 'operadoras_transacoes';

@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class PresencaEntity extends _Entity
+class PresencaEntity extends \SYS_Entity
 {
 
     protected $prefix = 'prs_';
