@@ -94,6 +94,7 @@ function consultaCEP(el) {
 	});
 }
 $(document).ready(function() {
+	console.log()
 	$('#navbarSideCollapse').click(function() {
 		$('.offcanvas-collapse').toggleClass('open');
 	});

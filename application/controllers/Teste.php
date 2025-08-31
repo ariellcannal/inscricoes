@@ -5,6 +5,7 @@ use CANNALPagamentos\Entities\Cartao;
 use CANNALPagamentos\Entities\Pedido;
 use CANNALInscricoes\Entities\OperadorasEntity;
 use CANNALLogs\Logs;
+use CANNALInscricoes\Entities\AlunosCreditosEntity;
 
 class Teste extends SYS_Controller
 {
@@ -19,6 +20,7 @@ class Teste extends SYS_Controller
 
     public function index()
     {
+        $e = new AlunosCreditosEntity();
         return ;
         print $this->usuarios_model->criptPass('A648h722c#');
         return;

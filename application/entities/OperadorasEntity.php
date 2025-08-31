@@ -1,6 +1,8 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
+require_once __DIR__ . '/../core/SYS_Entity.php';
+
 class OperadorasEntity extends \SYS_Entity
 {
 
