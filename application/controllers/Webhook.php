@@ -30,13 +30,19 @@ class Webhook extends SYS_Controller
         return hash_equals($expected, $signatureHeader);
     }
 
-    function pagarme($wh = null)
+    /**
+     * Processa notificações do Pagar.me.
+     *
+     * @param array|null $wh Dados de webhook para testes.
+     * @return void
+     */
+    public function pagarme(?array $wh = null): void
     {
         $payload = $this->input->raw_input_stream;
         $headers = $this->input->request_headers(TRUE);
 
         if (! $this->validateSignature($payload, $headers['X-Hub-Signature'] ?? null)) {
-            set_status_header(401);
+            set_status_header(401, lang('error_assinatura_invalida'));
             return;
         }
 
@@ -62,14 +68,16 @@ class Webhook extends SYS_Controller
 
             if (strpos($wh['type'], 'charge') !== null) {
                 if (! $transacoes = $this->operadoras_model->getTransacaoPorOperadoraId($wh['data']['id'])) {
-                    return set_status_header(400,'Transação não localizada');
+                    set_status_header(400, lang('error_transacao_nao_localizada'));
+                    return;
                 } else {
                     $this->load->library('controllers/TransacoesLib', null, 'transacoes');
                     $this->load->library('controllers/InscricoesLib', null, 'inscricoes');
                     foreach ($transacoes as $otr) {
                         $transacao = new OperadorasTransacoesEntity($otr);
                         if (! $this->transacoes->sincronizar($transacao->getId())) {
-                            return set_status_header(400,'Transação não localizada');
+                            set_status_header(400, lang('error_transacao_nao_localizada'));
+                            return;
                         }
                         if ($wh['type'] == 'charge.paid') {
                             $this->inscricoes->email_inscricao($transacao->getInscricao(), 'pagamento_confirmado', $transacao);
@@ -83,7 +91,8 @@ class Webhook extends SYS_Controller
             } else if ($wh['type'] == 'payable.paid') {
                 // RECEBIVEL RECEBIDO
                 if (! $recebiveis = $this->recebiveis_model->getRecebiveisPorOperadoraId($wh['data']['id']) && ! $recebiveis = $this->recebiveis_model->getRecebiveisPorOperadoraId($wh['data']['gateway_id'])) {
-                    return set_status_header(400,'Recebível não localizado');
+                    set_status_header(400, lang('error_recebivel_nao_localizado'));
+                    return;
                 } else {
                     $this->load->library('controllers/RecebiveisLib', null, 'recebiveis');
                     foreach ($recebiveis as $rec) {
@@ -93,6 +102,7 @@ class Webhook extends SYS_Controller
                 }
             }
         }
-        return set_status_header(200,'OK');
+        set_status_header(200, lang('general_ok'));
+        return;
     }
 }

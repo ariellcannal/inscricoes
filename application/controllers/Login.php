@@ -32,13 +32,13 @@ class Login extends SYS_Controller
         if ($this->form_validation->run('login/auth')) {
             $response = $this->usuarios_model->checkLogin($this->input->post('user'), $this->input->post('pass'));
             if ($response === false) {
-                set_status_header(401, 'Usuário ou senha inválidos');
+                set_status_header(401, lang('error_credenciais_invalidas'));
                 return;
             }
             $this->_setSession($response, $this->input->post('redirect_to'));
         } else {
             $this->form_validation->set_error_delimiters('', '');
-            set_status_header(401, validation_errors());
+            set_status_header(401, lang('error_dados_invalidos'));
             return;
         }
     }

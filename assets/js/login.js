@@ -27,10 +27,11 @@ var Login = {
 							window.location = data.redirect;
 						}
 					},
-					error: function(jqXHR, textStatus) {
-						alertify.alert('Atenção', jqXHR.statusText, 'danger');
-						console.log(jqXHR);
-					}
+                                        error: function(jqXHR, textStatus) {
+                                                const message = decodeURIComponent(escape(jqXHR.statusText));
+                                                alertify.alert('Atenção', message, 'danger');
+                                                console.log(jqXHR);
+                                        }
 				});
 			}
 			return false;
