@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class OperadorasFormasEntity extends _Entity
+class OperadorasFormasEntity extends \SYS_Entity
 {
 
     protected $prefix = 'ofo_';

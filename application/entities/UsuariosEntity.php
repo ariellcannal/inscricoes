@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class UsuariosEntity extends _Entity
+class UsuariosEntity extends \SYS_Entity
 {
 
     protected string $prefix = 'usr_';

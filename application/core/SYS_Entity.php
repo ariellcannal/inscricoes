@@ -1,13 +1,13 @@
 <?php
-namespace CANNALInscricoes\Entities;
 
-class _Entity
+class SYS_Entity
 {
 
     /**
-     * Exporta as variáveis um array.
+     * Importa os valores do array para as propriedades da entidade.
      *
-     * @return array
+     * @param array $array Dados a serem importados
+     * @return self
      */
     public function importArray(array $array): self
     {
@@ -23,9 +23,10 @@ class _Entity
     /**
      * Exporta as variáveis um array.
      *
+     * @param bool $include_null Incluir valores nulos no resultado
      * @return array
      */
-    public function toArray($include_null = true): array
+    public function toArray(bool $include_null = true): array
     {
         $return = [];
         $reflect = new \ReflectionClass($this);
@@ -47,7 +48,14 @@ class _Entity
         return $return;
     }
 
-    public function import(self|array $obj, $include_null = false)
+    /**
+     * Importa os dados de outra entidade ou array.
+     *
+     * @param self|array $obj Objeto ou array de origem
+     * @param bool $include_null Incluir valores nulos na importação
+     * @return self
+     */
+    public function import(self|array $obj, bool $include_null = false): self
     {
         if (! is_array($obj)) {
             $obj = $obj->toArray($include_null);
@@ -57,5 +65,5 @@ class _Entity
     }
 }
 
-/* End of file _Entity.php */
-/* Location: ./applicaion/core/_Entity.php */
+/* End of file SYS_Entity.php */
+/* Location: ./application/core/SYS_Entity.php */

@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class GruposDistribuicaoEntity extends _Entity
+class GruposDistribuicaoEntity extends \SYS_Entity
 {
 
     protected $prefix = 'dst_';

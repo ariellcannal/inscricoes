@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class RecebiveisEntity extends _Entity
+class RecebiveisEntity extends \SYS_Entity
 {
 
     protected $prefix = 'rec_';

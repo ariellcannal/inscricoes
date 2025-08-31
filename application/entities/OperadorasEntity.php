@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class OperadorasEntity extends _Entity
+class OperadorasEntity extends \SYS_Entity
 {
 
     protected string $prefix = 'opr_';

@@ -1,7 +1,7 @@
 <?php
 namespace CANNALInscricoes\Entities;
 
-class GruposDatasEntity extends _Entity
+class GruposDatasEntity extends \SYS_Entity
 {
 
     protected $prefix = 'grd_';
