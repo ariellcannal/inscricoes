@@ -41,6 +41,31 @@ class Config extends SYS_Controller
     }
 
     /**
+     * Exibe o conteúdo de um arquivo de log.
+     *
+     * @param string|null $path Caminho relativo do arquivo de log.
+     * @return void
+     */
+    public function show_log(?string $path = null): void
+    {
+        if ($path === null) {
+            show_404();
+        }
+
+        $logsDir = APPPATH . 'logs' . DIRECTORY_SEPARATOR;
+        $realLogsDir = realpath($logsDir);
+        $fullPath = realpath($logsDir . $path);
+
+        if ($realLogsDir === false || $fullPath === false || strpos($fullPath, $realLogsDir) !== 0 || !is_file($fullPath)) {
+            show_404();
+        }
+
+        $this->load->helper('file');
+        header('Content-Type: text/plain; charset=utf-8');
+        echo read_file($fullPath);
+    }
+
+    /**
      * Importa o banco de produção para desenvolvimento.
      *
      * Abre túnel SSH, gera dump e importa no banco de desenvolvimento.

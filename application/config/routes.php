@@ -56,5 +56,7 @@ $route['inscricao/(:any)'] = 'inscricoes/inscricao/$1';
 $route['inscricao/(:any)/(:any)'] = 'inscricoes/inscricao/$1/$2';
 $route['presenca'] = 'alunos/presenca';
 $route['sair'] = 'login/sair';
+// Rota para exibição de arquivos de log
+$route['config/show_log/(.+)'] = 'config/show_log/$1';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
