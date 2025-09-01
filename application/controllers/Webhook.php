@@ -10,24 +10,20 @@ class Webhook extends SYS_Controller
     }
 
     /**
-     * Validate the signature sent by the provider.
-     *
-     * @param string $payload  Raw request body
-     * @param string|null $signatureHeader Header value from X-Hub-Signature
+     * Verifica usuário e senha enviados via HTTP Basic Auth.
      *
      * @return bool
      */
-    private function validateSignature(string $payload, ?string $signatureHeader): bool
+    private function isAuthorized(): bool
     {
-        $secret = getenv('PAGARME_WEBHOOK_SECRET');
+        $expectedUser = getenv('PAGARME_WEBHOOK_USER') ?: '';
+        $expectedPass = getenv('PAGARME_WEBHOOK_PASS') ?: '';
+        $user = $this->input->server('PHP_AUTH_USER') ?? '';
+        $pass = $this->input->server('PHP_AUTH_PW') ?? '';
 
-        if (empty($secret) || empty($signatureHeader)) {
-            return false;
-        }
-
-        $expected = 'sha1=' . hash_hmac('sha1', $payload, $secret);
-
-        return hash_equals($expected, $signatureHeader);
+        return $expectedUser !== '' && $expectedPass !== ''
+            && hash_equals($expectedUser, $user)
+            && hash_equals($expectedPass, $pass);
     }
 
     /**
@@ -41,8 +37,8 @@ class Webhook extends SYS_Controller
         $payload = $this->input->raw_input_stream;
         $headers = $this->input->request_headers(TRUE);
 
-        if (! $this->validateSignature($payload, $headers['X-Hub-Signature'] ?? null)) {
-            set_status_header(401, lang('error_assinatura_invalida'));
+        if (! $this->isAuthorized()) {
+            set_status_header(401, lang('error_credenciais_invalidas'));
             return;
         }
 
