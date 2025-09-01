@@ -42,7 +42,7 @@ class Webhook extends SYS_Controller
 
         if (! $wh) {
             $this->logs->setLogDir('Webhook/pagarme');
-            // $this->logs->setLogName('webhook_' . date('Y-m-d_H:i:s'));
+            $this->logs->setLogName('webhook_' . date('Y-m-d_H:i:s'));
             $this->logs->write('DEBUG', 'HEADERS' . PHP_EOL . print_r($headers, true));
             $this->logs->write('DEBUG', 'POST' . PHP_EOL . print_r($post, true));
             $this->logs->write('DEBUG', 'GET' . PHP_EOL . print_r($get, true));
