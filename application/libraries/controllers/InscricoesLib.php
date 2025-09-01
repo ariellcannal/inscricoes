@@ -296,8 +296,7 @@ class InscricoesLib
             $transacao = new OperadorasTransacoesEntity($transacao);
         }
         $vars['transacao'] = $transacao;
-        $envio = false;
-
+        
         if ($tipo == 'solicita_aprovacao') {
             $destinatarios = [];
             foreach ($this->CI->grupos_model->getCoordenadoresDoGrupo($vars['ins']['ins_grupo']) as $row) {
@@ -323,8 +322,7 @@ class InscricoesLib
                     $name = substr($name, 0, $pos) . $ext;
                 }
                 $this->CI->mail->attach($_SERVER['DOCUMENT_ROOT'] . '/writable/alunos/' . $vars['alu']['alu_cv']);
-                $envio = $this->CI->mail->send();
-                return $envio;
+                return $this->CI->mail->send();
             }
             return false;
         } else if ($tipo == 'transacao_nao_aprovada') {
@@ -338,6 +336,7 @@ class InscricoesLib
             $this->CI->mail->message($this->CI->load->view('emails/aluno/inscricaoAprovada.php', $vars, true));
             return $this->CI->mail->send();
         } else if ($tipo == 'pagamento_confirmado') {
+            $envio = false;
             if ($forceAluno || empty($vars['ins']['ins_notificacaoAluno'])) {
                 $this->CI->mail->addAddress($vars['alu']['alu_email']);
                 $this->CI->mail->subject('[INSCRIÇÃO APROVADA] ' . $vars['grp']['grp_nomePublico']);
