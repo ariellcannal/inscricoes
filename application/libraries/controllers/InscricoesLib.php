@@ -274,7 +274,16 @@ class InscricoesLib
         return $this->CI->transacoes->sincronizar($transacao->getId(), null, false);
     }
 
-    public function email_inscricao($ins_id, $tipo, $transacao = null)
+    /**
+     * Envia notificações para o aluno ou coordenadores de acordo com o tipo.
+     *
+     * @param int        $ins_id      Identificador da inscrição
+     * @param string     $tipo        Tipo de notificação
+     * @param mixed|null $transacao   Dados da transação relacionada
+     * @param bool       $forceAluno  Força envio ao aluno quando o tipo é pagamento_confirmado
+     * @return bool|null Resultado do envio
+     */
+    public function email_inscricao($ins_id, $tipo, $transacao = null, bool $forceAluno = false)
     {
         $this->CI->initMail();
         $this->CI->load->model('inscricoes_model');
@@ -287,17 +296,17 @@ class InscricoesLib
             $transacao = new OperadorasTransacoesEntity($transacao);
         }
         $vars['transacao'] = $transacao;
+        $envio = false;
+
         if ($tipo == 'solicita_aprovacao') {
-            /* E-MAIL PARA O COORDERNADOR */
-            $destinatarios = array();
+            $destinatarios = [];
             foreach ($this->CI->grupos_model->getCoordenadoresDoGrupo($vars['ins']['ins_grupo']) as $row) {
-                if ($row['usr_recebeInscricoes'] == 1 && $row['usr_email'] != "") {
+                if ($row['usr_recebeInscricoes'] == 1 && $row['usr_email'] != '') {
                     $destinatarios[] = $row['usr_email'];
                 }
             }
             if (count($destinatarios)) {
                 $this->CI->logs->write('DEBUG', 'Enviar solicitação de aprovação');
-
                 foreach ($destinatarios as $d) {
                     $this->CI->mail->addAddress($d);
                 }
@@ -314,45 +323,58 @@ class InscricoesLib
                     $name = substr($name, 0, $pos) . $ext;
                 }
                 $this->CI->mail->attach($_SERVER['DOCUMENT_ROOT'] . '/writable/alunos/' . $vars['alu']['alu_cv']);
-                return $this->CI->mail->send();
+                $envio = $this->CI->mail->send();
+                return $envio;
             }
+            return false;
         } else if ($tipo == 'transacao_nao_aprovada') {
-            /* E-MAIL PARA O ALUNO */
             $this->CI->mail->addAddress($vars['alu']['alu_email']);
             $this->CI->mail->subject('[INSCRIÇÃO RECEBIDA] ' . $vars['grp']['grp_nomePublico']);
             $this->CI->mail->message($this->CI->load->view('emails/aluno/falhaCartao.php', $vars, true));
             return $this->CI->mail->send();
         } else if ($tipo == 'inscricao_aprovada') {
-            /* E-MAIL PARA O ALUNO */
             $this->CI->mail->addAddress($vars['alu']['alu_email']);
             $this->CI->mail->subject('[INSCRIÇÃO APROVADA] ' . $vars['grp']['grp_nomePublico']);
             $this->CI->mail->message($this->CI->load->view('emails/aluno/inscricaoAprovada.php', $vars, true));
             return $this->CI->mail->send();
         } else if ($tipo == 'pagamento_confirmado') {
-            /* E-MAIL PARA O ALUNO */
-            $this->CI->mail->addAddress($vars['alu']['alu_email']);
-            $this->CI->mail->subject('[INSCRIÇÃO APROVADA] ' . $vars['grp']['grp_nomePublico']);
-            $this->CI->mail->message($this->CI->load->view('emails/aluno/pagamentoConfirmado_' . $transacao->getTipo() . '.php', $vars, true));
-            $this->CI->mail->send();
-
-            /* E-MAIL PARA O COORDERNADOR */
-            $destinatarios = array();
-            foreach ($this->CI->grupos_model->getCoordenadoresDoGrupo($vars['ins']['ins_grupo']) as $row) {
-                if ($row['usr_recebeInscricoes'] == 1 && $row['usr_email'] != "") {
-                    $destinatarios[] = $row['usr_email'];
+            if ($forceAluno || empty($vars['ins']['ins_notificacaoAluno'])) {
+                $this->CI->mail->addAddress($vars['alu']['alu_email']);
+                $this->CI->mail->subject('[INSCRIÇÃO APROVADA] ' . $vars['grp']['grp_nomePublico']);
+                $this->CI->mail->message($this->CI->load->view('emails/aluno/pagamentoConfirmado_' . $transacao->getTipo() . '.php', $vars, true));
+                if ($this->CI->mail->send()) {
+                    $this->CI->alunos_model->updateInscricao($ins_id, [
+                        'ins_notificacaoAluno' => date('Y-m-d H:i:s')
+                    ]);
+                    $envio = true;
                 }
             }
-            if (count($destinatarios)) {
-                $vars['inscricoes'] = $this->CI->grupos_model->getAlunosInscritos($vars['grp']['grp_id']);
-                foreach ($destinatarios as $d) {
-                    $this->CI->mail->addAddress($d);
+            if (empty($vars['ins']['ins_notificacaoCoordenadores'])) {
+                $this->CI->initMail();
+                $destinatarios = [];
+                foreach ($this->CI->grupos_model->getCoordenadoresDoGrupo($vars['ins']['ins_grupo']) as $row) {
+                    if ($row['usr_recebeInscricoes'] == 1 && $row['usr_email'] != '') {
+                        $destinatarios[] = $row['usr_email'];
+                    }
                 }
-                $this->CI->mail->subject('[NOVA INSCRIÇÃO CONFIRMADA] ' . $vars['grp']['grp_nomePublico']);
-                $msg = $this->CI->load->view('emails/coordenador/novaInscricao.php', $vars, true);
-                $msg .= $this->CI->load->view('emails/coordenador/listaInscritos.php', $vars, true);
-                $this->CI->mail->message($msg);
-                return $this->CI->mail->send();
+                if (count($destinatarios)) {
+                    $vars['inscricoes'] = $this->CI->grupos_model->getAlunosInscritos($vars['grp']['grp_id']);
+                    foreach ($destinatarios as $d) {
+                        $this->CI->mail->addAddress($d);
+                    }
+                    $this->CI->mail->subject('[NOVA INSCRIÇÃO CONFIRMADA] ' . $vars['grp']['grp_nomePublico']);
+                    $msg = $this->CI->load->view('emails/coordenador/novaInscricao.php', $vars, true);
+                    $msg .= $this->CI->load->view('emails/coordenador/listaInscritos.php', $vars, true);
+                    $this->CI->mail->message($msg);
+                    if ($this->CI->mail->send()) {
+                        $this->CI->alunos_model->updateInscricao($ins_id, [
+                            'ins_notificacaoCoordenadores' => date('Y-m-d H:i:s')
+                        ]);
+                        $envio = true;
+                    }
+                }
             }
+            return $envio;
         } else if ($tipo == 'inscricao_recebida_processo') {
             $this->CI->mail->addAddress($vars['alu']['alu_email']);
             $this->CI->mail->subject('[INSCRIÇÃO RECEBIDA] ' . $vars['grp']['grp_nomePublico']);
@@ -373,9 +395,9 @@ class InscricoesLib
             $this->CI->mail->subject('[ESTORNO] ' . $vars['grp']['grp_nomePublico']);
             $this->CI->mail->message($this->CI->load->view('emails/aluno/confirmacaoEstorno.php', $vars, true));
             return $this->CI->mail->send();
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     public function whatsAppMsg()
