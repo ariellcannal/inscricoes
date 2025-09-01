@@ -37,11 +37,6 @@ class Webhook extends SYS_Controller
         $payload = $this->input->raw_input_stream;
         $headers = $this->input->request_headers(TRUE);
 
-        if (! $this->isAuthorized()) {
-            set_status_header(401, lang('error_credenciais_invalidas'));
-            return;
-        }
-
         $post = $this->input->post(NULL, TRUE);
         $get  = $this->input->get(NULL, TRUE);
 
@@ -53,6 +48,11 @@ class Webhook extends SYS_Controller
             $this->logs->write('DEBUG', 'GET' . PHP_EOL . print_r($get, true));
             $this->logs->write('DEBUG', 'INPUT' . PHP_EOL . $payload);
             $wh = json_decode($payload, true);
+        }
+        
+        if (! $this->isAuthorized()) {
+            set_status_header(401, lang('error_credenciais_invalidas'));
+            return;
         }
 
         if (! empty($wh['data'])) {
