@@ -1,0 +1,3 @@
+ALTER TABLE `inscricoes`
+  ADD `ins_notificacaoAluno` DATETIME NULL DEFAULT NULL AFTER `ins_user`,
+  ADD `ins_notificacaoCoordenadores` DATETIME NULL DEFAULT NULL AFTER `ins_notificacaoAluno`;

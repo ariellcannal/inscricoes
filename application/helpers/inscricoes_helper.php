@@ -202,7 +202,7 @@ if (! function_exists('reenviar_confirmacao')) {
         ]);
         if ($transacoes) {
             foreach ($transacoes as $transacao) {
-                if ($ci->inscricoes->email_inscricao($xcrud->get('primary'), 'pagamento_confirmado', $transacao)) {
+                if ($ci->inscricoes->email_inscricao($xcrud->get('primary'), 'pagamento_confirmado', $transacao, true)) {
                     $xcrud->set_notify('OTR ' . $transacao['otr_id'] . ': e-mail enviado', 'success', true);
                 } else {
                     $xcrud->set_notify('OTR ' . $transacao['otr_id'] . ': falha', 'error', true);

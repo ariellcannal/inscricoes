@@ -40,6 +40,10 @@ class InscricoesEntity extends \SYS_Entity
 
     protected ?int $user = null;
 
+    protected ?string $notificacaoAluno = null;
+
+    protected ?string $notificacaoCoordenadores = null;
+
     /**
      * Get the value of id
      */
@@ -311,6 +315,50 @@ class InscricoesEntity extends \SYS_Entity
     public function setUser(?int $user): self
     {
         $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * Obtém a data da última notificação enviada ao aluno.
+     *
+     * @return string|null
+     */
+    public function getStudentNotification(): ?string
+    {
+        return $this->notificacaoAluno;
+    }
+
+    /**
+     * Define a data da última notificação enviada ao aluno.
+     *
+     * @param string|null $notificacaoAluno
+     * @return self
+     */
+    public function setStudentNotification(?string $notificacaoAluno): self
+    {
+        $this->notificacaoAluno = $notificacaoAluno;
+        return $this;
+    }
+
+    /**
+     * Obtém a data da última notificação enviada aos coordenadores.
+     *
+     * @return string|null
+     */
+    public function getCoordinatorsNotification(): ?string
+    {
+        return $this->notificacaoCoordenadores;
+    }
+
+    /**
+     * Define a data da última notificação enviada aos coordenadores.
+     *
+     * @param string|null $notificacaoCoordenadores
+     * @return self
+     */
+    public function setCoordinatorsNotification(?string $notificacaoCoordenadores): self
+    {
+        $this->notificacaoCoordenadores = $notificacaoCoordenadores;
         return $this;
     }
 }
