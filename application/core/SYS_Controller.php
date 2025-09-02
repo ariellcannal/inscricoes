@@ -1,21 +1,19 @@
 <?php
-
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
 use PHPMailer\PHPMailer\PHPMailer;
 
-defined('DIR_IMAGEM_USUARIOS') or define('DIR_IMAGEM_USUARIOS',  '/writable/usuarios/');
-defined('DIR_IMAGEM_ALUNOS') or define('DIR_IMAGEM_ALUNOS',  '/writable/alunos/');
-defined('DIR_IMAGEM_GRUPOS') or define('DIR_IMAGEM_GRUPOS',  '/writable/grupos/');
+defined('DIR_IMAGEM_USUARIOS') or define('DIR_IMAGEM_USUARIOS', '/writable/usuarios/');
+defined('DIR_IMAGEM_ALUNOS') or define('DIR_IMAGEM_ALUNOS', '/writable/alunos/');
+defined('DIR_IMAGEM_GRUPOS') or define('DIR_IMAGEM_GRUPOS', '/writable/grupos/');
 defined('URI_INSCRICOES') or define('URI_INSCRICOES', '/inscricao/');
 
 class SYS_Controller extends CI_Controller
 {
 
     public ?array $vars = [];
-
 
     /**
      * Instância padrão do logger.
@@ -66,11 +64,9 @@ class SYS_Controller extends CI_Controller
             $html_errors = true;
         }
 
-        $this->logger = new Logger('app');
-        $logPath = APPPATH . 'logs/' . date('Y-m-d') . '.log';
-        $handler = new StreamHandler($logPath, Level::Debug);
-        $handler->setFormatter(new LineFormatter(null, null, true, true));
-        $this->logger->pushHandler($handler);
+        $this->logger = new Logger('app', [
+            new StreamHandler(APPPATH . 'logs/' . date('Y-m-d') . '.log', Level::Debug)
+        ]);
     }
 
     public function initMail()

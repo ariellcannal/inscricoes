@@ -1,12 +1,26 @@
 <?php
 use CANNALInscricoes\Entities\OperadorasTransacoesEntity;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
 
 class Pagarme extends SYS_Controller
 {
 
+    /**
+     * Instância do logger de exceptions.
+     *
+     * @var Logger
+     */
+    private Logger $logger;
+
     function __construct()
     {
         parent::__construct();
+
+        $this->logger = new Logger('cron', [
+            new StreamHandler(APPPATH . 'logs/ws/pagarme_' . date('Y-m-d') . '.log', Level::Debug)
+        ]);
     }
 
     /**
@@ -21,15 +35,14 @@ class Pagarme extends SYS_Controller
         $user = $this->input->server('PHP_AUTH_USER') ?? '';
         $pass = $this->input->server('PHP_AUTH_PW') ?? '';
 
-        return $expectedUser !== '' && $expectedPass !== ''
-            && hash_equals($expectedUser, $user)
-            && hash_equals($expectedPass, $pass);
+        return $expectedUser !== '' && $expectedPass !== '' && hash_equals($expectedUser, $user) && hash_equals($expectedPass, $pass);
     }
 
     /**
      * Processa notificações do Pagar.me.
      *
-     * @param array|null $wh Dados de webhook para testes.
+     * @param array|null $wh
+     *            Dados de webhook para testes.
      * @return void
      */
     public function index(?array $wh = null): void
@@ -38,18 +51,16 @@ class Pagarme extends SYS_Controller
         $headers = $this->input->request_headers(TRUE);
 
         $post = $this->input->post(NULL, TRUE);
-        $get  = $this->input->get(NULL, TRUE);
+        $get = $this->input->get(NULL, TRUE);
 
         if (! $wh) {
-            $this->logs->setLogDir('Webhook/pagarme');
-            $this->logs->setLogName('webhook_' . date('Y-m-d_H:i:s'));
-            $this->logs->write('DEBUG', 'HEADERS' . PHP_EOL . print_r($headers, true));
-            $this->logs->write('DEBUG', 'POST' . PHP_EOL . print_r($post, true));
-            $this->logs->write('DEBUG', 'GET' . PHP_EOL . print_r($get, true));
-            $this->logs->write('DEBUG', 'INPUT' . PHP_EOL . $payload);
+            $this->logger->debug('HEADERS' . print_r($headers, true));
+            $this->logger->debug('POST' . print_r($post, true));
+            $this->logger->debug('GET' . print_r($get, true));
+            $this->logger->debug('INPUT' . $payload);
             $wh = json_decode($payload, true);
         }
-        
+
         if (! $this->isAuthorized()) {
             set_status_header(401, lang('error_credenciais_invalidas'));
             return;

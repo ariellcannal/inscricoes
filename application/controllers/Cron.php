@@ -1,14 +1,14 @@
 <?php
-use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
-use Monolog\Logger; 
+use Monolog\Logger;
 use CANNALInscricoes\Entities\OperadorasEntity;
 use CANNALInscricoes\Entities\RecebiveisEntity;
 use CANNALInscricoes\Entities\OperadorasTransacoesEntity;
- 
+
 class Cron extends SYS_Controller
 {
+
     /**
      * Instância do logger da classe.
      *
@@ -16,33 +16,24 @@ class Cron extends SYS_Controller
      */
     private Logger $logger;
 
-
-    /**
-     * Diretório base dos logs do cron.
-     *
-     * @var string
-     */
-    private string $logDirectory;
-
     function __construct()
     {
         parent::__construct();
-        //return;
+        // return;
         if (! is_cli() && ENVIRONMENT != 'development') {
             show_404();
         }
-        $this->logDirectory = APPPATH . 'logs/cron/';
-        if (! is_dir($this->logDirectory)) {
-            mkdir($this->logDirectory, 0777, true);
-        }
-        $this->logger = new Logger('cron');
+        $this->logger = new Logger('cron', [
+            new StreamHandler(APPPATH . 'logs/cron/' . date('Y-m-d') . '.log', Level::Debug)
+        ]);
     }
 
     /**
      * Cria arquivo de lock para evitar execuções simultâneas.
      *
-     * @param string $name Nome do processo.
-     *
+     * @param string $name
+     *            Nome do processo.
+     *            
      * @return void
      */
     private function setLockFile(string $name): void
@@ -64,8 +55,9 @@ class Cron extends SYS_Controller
     /**
      * Remove o arquivo de lock do processo.
      *
-     * @param string $name Nome do processo.
-     *
+     * @param string $name
+     *            Nome do processo.
+     *            
      * @return void
      */
     private function unsetLockFile(string $name): void
@@ -153,21 +145,6 @@ class Cron extends SYS_Controller
     {
         $this->load->library('controllers/RecebiveisLib', null, 'recebiveis');
         $this->recebiveis->sincronizarPrevistosAteHoje();
-    }
-
-    /**
-     * Configura o arquivo de log para o processo atual.
-     *
-     * @param string $logName Nome do arquivo de log.
-     *
-     * @return void
-     */
-    private function setLogFile(string $logName): void
-    {
-        $path = $this->logDirectory . $logName . '.log';
-        $handler = new StreamHandler($path, Level::Debug);
-        $handler->setFormatter(new LineFormatter(null, null, true, true));
-        $this->logger->setHandlers([$handler]);
     }
 }
 
