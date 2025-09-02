@@ -4,7 +4,7 @@ use CANNALPagamentos\Entities\Cliente;
 use CANNALPagamentos\Entities\Cartao;
 use CANNALPagamentos\Entities\Pedido;
 use CANNALInscricoes\Entities\OperadorasEntity;
-use CANNALLogs\Logs;
+use CANNALInscricoes\Libraries\Logs;
 use CANNALInscricoes\Entities\AlunosCreditosEntity;
 
 class Teste extends SYS_Controller
