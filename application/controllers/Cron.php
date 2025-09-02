@@ -1,5 +1,5 @@
 <?php
-use CANNALLogs\Logs;
+use App\Libraries\Logs;
 use CANNALInscricoes\Entities\OperadorasEntity;
 use CANNALInscricoes\Entities\RecebiveisEntity;
 use CANNALInscricoes\Entities\OperadorasTransacoesEntity;
@@ -7,7 +7,7 @@ use CANNALInscricoes\Entities\OperadorasTransacoesEntity;
 class Cron extends SYS_Controller
 {
 
-    var $logs;
+    private Logs $logs;
 
     function __construct()
     {

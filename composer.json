@@ -1,14 +1,15 @@
 {
-	"name" : "ariellcannal/inscricoes",
-	"type" : "project",
-	"homepage" : "https://inscricoes.cannal.com.br",
-	"license" : "MIT",
+        "name" : "ariellcannal/inscricoes",
+        "type" : "project",
+        "description" : "Aplicação de inscrições com logging via Monolog",
+        "homepage" : "https://inscricoes.cannal.com.br",
+        "license" : "MIT",
 	"require" : {
 		"php" : ">=8.0.0",
 		"dompdf/dompdf" : "~2.0",
-		"phpmailer/phpmailer" : "~6.9",
-		"ariellcannal/pagamentos" : "master",
-		"ariellcannal/logs" : "master"
+                "phpmailer/phpmailer" : "~6.9",
+                "ariellcannal/pagamentos" : "master",
+                "monolog/monolog" : "^3.5"
 	},
 	"require-dev" : {
 		"phpseclib/phpseclib" : "~3.0"
@@ -17,20 +18,17 @@
 			"type" : "git",
 			"url" : "git@github.com:ariellcannal/pagamentos.git",
 			"name" : "pagamentos"
-		}, {
-			"type" : "git",
-			"url" : "git@github.com:ariellcannal/logs.git",
-			"name" : "logs"
-		}
-	],
+                }
+        ],
 	"autoload" : {
-		"psr-4" : {
-			"CANNALInscricoes\\Entities\\" : "application/entities/"
-		}
+                "psr-4" : {
+                        "CANNALInscricoes\\Entities\\" : "application/entities/",
+                        "App\\Libraries\\" : "application/libraries/"
+                }
 	},
 	"minimum-stability" : "dev",
 	"prefer-stable" : true,
-	"config" : {
-		"notify-on-install" : false
-	}
+        "config" : {
+                "notify-on-install" : false
+        }
 }
