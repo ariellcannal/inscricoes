@@ -163,8 +163,7 @@ class TransacoesLib
             $opr = $this->CI->operadoras_model->getRow($otr['otr_operadora']);
             $ins = $this->CI->inscricoes_model->getInscricaoCompleta($otr['otr_inscricao']);
 
-            $this->CI->logs->setLogName('ALU_' . $ins['alu_id'] . '_' . time(), true);
-            $this->CI->logs->write('INFO', 'ESTORNO Valor: ' . $this->CI->input->post('otr_valorCancelamento'));
+            $this->CI->logger->info('ESTORNO Valor: ' . $this->CI->input->post('otr_valorCancelamento'));
 
             $valor = (float) $this->valorLiquidoCancelamento($otr, str_replace(',', '.', str_replace('.', '', str_replace('R$ ', '', $this->CI->input->post('otr_valorCancelamento')))));
 
@@ -183,14 +182,14 @@ class TransacoesLib
                 }
             }
 
-            $this->CI->logs->write('INFO', 'Vai estornar...');
+            $this->CI->logger->info('Vai estornar...');
 
             $opr = new OperadorasEntity($opr);
             $class = "CANNALPagamentos\\Interfaces\\" . ucfirst($opr->getInterface());
             if (ENVIRONMENT == 'production') {
-                $interface = new $class($opr->getProductionKey(), $opr->getNome());
+                $interface = new $class($opr->getProductionKey(), $opr->getNome(),$this->CI->logger);
             } else {
-                $interface = new $class($opr->getDevelopmentKey(), $opr->getNome());
+                $interface = new $class($opr->getDevelopmentKey(), $opr->getNome(),$this->CI->logger);
             }
 
             $transacao_operadora = $interface->refund($otr['otr_operadoraID'], $valor);
@@ -204,7 +203,7 @@ class TransacoesLib
                 $this->CI->load->library('controllers/InscricoesLib', null, 'inscricoes');
                 $this->CI->inscricoes->email_inscricao($otr['otr_inscricao'], 'confirmar_estorno', $transacao);
             } else {
-                return set_status_header(400,'Não foi possível estornar esse pagamento ' . $this->CI->logs->getLogName());
+                return set_status_header(400,'Não foi possível estornar esse pagamento');
             }
         } else {
             show_404();

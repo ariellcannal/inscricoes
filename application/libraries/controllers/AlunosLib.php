@@ -39,12 +39,11 @@ class AlunosLib
                 $alu->setCv($xcrud->create_file('a.alu_cv', $alu->getCv()));
 
                 if ($cli->getIdOperadora()) {
-                    $this->CI->logs->setLogName('ALU_'.$alu->getId() . '_' . time(), true);
                     $class = "CANNALPagamentos\\Interfaces\\" . ucfirst($opr->getInterface());
                     if (ENVIRONMENT == 'production' || FORCE_OPERADORA_PRODUCTION === TRUE) {
-                        $interface = new $class($opr->getProductionKey(), $opr->getNome());
+                        $interface = new $class($opr->getProductionKey(), $opr->getNome(), $this->CI->logger);
                     } else {
-                        $interface = new $class($opr->getDevelopmentKey(), $opr->getNome());
+                        $interface = new $class($opr->getDevelopmentKey(), $opr->getNome(), $this->CI->logger);
                     }
                     $cartoes = $interface->getCards($cli);
                     if (is_countable($cartoes) && count($cartoes)) {

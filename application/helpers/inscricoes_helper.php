@@ -105,16 +105,15 @@ if (! function_exists('BI_inscricao_aluno')) {
             if ($alu_id) {
                 $postdata->set('ins_aluno', $alu_id);
             } else {
-                $ci->logs->write('ERROR', 'Falha ao cadastrar ou selecionar o aluno.');
-                $xcrud->set_notify('Falha ao realizar a inscrição ' . $ci->logs->getLogName(), 'error', true);
+                $ci->logger->error('Falha ao cadastrar ou selecionar o aluno.');
+                $xcrud->set_notify('Falha ao realizar a inscrição.', 'error', true);
                 return false;
             }
         } else {
-            $ci->logs->write('ERROR', 'Falha ao obter dados do aluno.');
-            $xcrud->set_message('Falha ao realizar a inscrição ' . $ci->logs->getLogName(), 'error');
+            $ci->logger->error('Falha ao obter dados do aluno.');
+            $xcrud->set_message('Falha ao realizar a inscrição', 'error');
             return false;
         }
-        $ci->logs->setLogName('ALU_' . $alu_id . '_' . time(), true);
 
         if (empty($postdata->get('alu_cartoes'))) {
             $postdata->set('alu_cartoes', 'novo');
@@ -126,8 +125,8 @@ if (! function_exists('BI_inscricao_aluno')) {
         } else if ($grp_operadora = $ci->operadoras_model->getRow($grp['grp_operadora'])) {
             $opr->importArray($grp_operadora);
         } else {
-            $ci->logs->write('ERROR', 'Operadora não localizada');
-            $xcrud->set_notify('Operadora indisponível ' . $ci->logs->getLogName(), 'error', true);
+            $ci->logger->error('Operadora não localizada',['ALU_' . $alu_id]);
+            $xcrud->set_notify('Operadora indisponível', 'error', true);
             return false;
         }
 
@@ -160,9 +159,9 @@ if (! function_exists('AI_inscricao_aluno')) {
         $class = ucfirst($opr->getInterface());
         $class = "CANNALPagamentos\\Interfaces\\" . $class;
         if (ENVIRONMENT == 'production') {
-            $interface = new $class($opr->getProductionKey(), $opr->getNome());
+            $interface = new $class($opr->getProductionKey(), $opr->getNome(), $ci->logger);
         } else {
-            $interface = new $class($opr->getDevelopmentKey(), $opr->getNome());
+            $interface = new $class($opr->getDevelopmentKey(), $opr->getNome(), $ci->logger);
         }
 
         if ($ci->inscricoes->set_transacao($ins_id, $postdata, $xcrud, $postdata->get('operadora')) !== false) {

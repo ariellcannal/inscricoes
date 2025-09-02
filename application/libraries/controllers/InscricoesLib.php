@@ -108,8 +108,6 @@ class InscricoesLib
         $vars['ins'] = $this->CI->inscricoes_model->getInscricaoCompleta($ins_id);
         $vars['alu'] = $this->CI->alunos_model->getRow($vars['ins']['ins_aluno']);
 
-        $this->CI->logs->setLogName('ALU_' . $vars['alu']['alu_id'] . '_' . time(), true);
-
         if (empty($vars['ins'])) {
             return set_status_header(404,'Essa inscrição não foi localizada');
         } else if (! empty($vars['ins']['ins_aprovada'])) {
@@ -169,11 +167,11 @@ class InscricoesLib
         }
         $gfp = $this->CI->grupos_model->getForma($fop[0]);
         if (! $gfp && ! empty($xcrud)) {
-            $this->CI->logs->write('ERROR', 'Falha ao selecionar forma de pagamento do grupo. Fop[0] = ' . $fop[0]);
-            $xcrud->set_notify('Falha ao realizar a inscrição: ' . $this->CI->logs->getLogName(), 'alert', true);
+            $this->CI->logger->error('Falha ao selecionar forma de pagamento do grupo. Fop[0] = ' . $fop[0]);
+            $xcrud->set_notify('Falha ao realizar a inscrição:', 'alert', true);
             return false;
         } else if (! $gfp) {
-            $this->CI->logs->write('DEBUG', 'Problema ao selecionar forma de pagamento do grupo');
+            $this->CI->logger->debug('Problema ao selecionar forma de pagamento do grupo');
             return false;
         } else {
             $ins_update['ins_forma'] = $fop[0];
@@ -258,7 +256,7 @@ class InscricoesLib
             return false;
         } else if ($capture) {
             if (! empty($xcrud)) {
-                $xcrud->set_notify('Falha ao realizar transação: ' . $this->CI->logs->getLogName(), 'alert', true);
+                $xcrud->set_notify('Falha ao realizar transação:', 'alert', true);
             }
             return false;
         }
@@ -305,7 +303,7 @@ class InscricoesLib
                 }
             }
             if (count($destinatarios)) {
-                $this->CI->logs->write('DEBUG', 'Enviar solicitação de aprovação');
+                $this->CI->logger->debug('Enviar solicitação de aprovação');
                 foreach ($destinatarios as $d) {
                     $this->CI->mail->addAddress($d);
                 }
