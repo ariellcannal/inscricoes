@@ -7,7 +7,7 @@ function initAlunos() {
 			window.open('https://api.whatsapp.com/send?phone=55' + $(this).data('tel') + '&text=' + $(this).data('msg') + '/' + btoa(token), '_blank').focus(); return;
 		}
 		else {
-			if (navigator.share) {	
+			if (navigator.share) {
 				navigator.share({
 					title: 'Cadastro de Alunos',
 					text: $(this).data('msg') + '/' + btoa(token)

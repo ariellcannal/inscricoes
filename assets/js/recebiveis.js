@@ -9,12 +9,11 @@ function initRecebiveis() {
 			success: function(response, status, jqXHR) {
 				Xcrud.reload();
 			},
-                        error: function(jqXHR, textStatus, errorThrown) {
-                                const message = decodeURIComponent(escape(jqXHR.statusText));
-                                Xcrud.show_error(message);
-                                console.log(message);
-                                console.log(jqXHR.responseText);
-                        }
+			error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
+			}
 		});
 	});
 
@@ -28,12 +27,11 @@ function initRecebiveis() {
 			success: function(response, status, jqXHR) {
 				Xcrud.reload();
 			},
-                        error: function(jqXHR, textStatus, errorThrown) {
-                                const message = decodeURIComponent(escape(jqXHR.statusText));
-                                Xcrud.show_error(message);
-                                console.log(message);
-                                console.log(jqXHR.responseText);
-                        }
+			error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
+			}
 		});
 	});
 
@@ -45,12 +43,11 @@ function initRecebiveis() {
 				Xcrud.show_success(response);
 				Xcrud.reload();
 			},
-                        error: function(jqXHR, textStatus, errorThrown) {
-                                const message = decodeURIComponent(escape(jqXHR.statusText));
-                                Xcrud.show_error(message);
-                                console.log(message);
-                                console.log(jqXHR.responseText);
-                        }
+			error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
+			}
 		});
 	});
 }

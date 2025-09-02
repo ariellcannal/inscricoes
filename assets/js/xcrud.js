@@ -58,12 +58,11 @@ var Xcrud = {
 					}
 				}
 			},
-                        error: function(jqXHR, textStatus, errorThrown) {
-                                Xcrud.show_error(Xcrud.lang('undefined_error'))
-                                const message = decodeURIComponent(escape(jqXHR.statusText));
-                                console.log(message);
-                                console.log(jqXHR.responseText);
-                        },
+			error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText)
+			},
 			complete: function(jqXHR) {
 				$(document).trigger("xcrudafterrequest", [container, data]);
 				Xcrud.hide_progress(container);
@@ -134,7 +133,8 @@ var Xcrud = {
 					Xcrud.hide_progress(container);
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
-					console.log(textStatus);
+					const message = decodeURIComponent(escape(jqXHR.statusText));
+					Xcrud.show_error(message)
 					console.log(jqXHR.responseText);
 				},
 				cache: false
@@ -438,6 +438,11 @@ var Xcrud = {
 								$(".xcrud-overlay").stop(true, true).css("display", "none");
 								$(elements).removeClass("editor-instance");
 							},
+							error: function(jqXHR, textStatus, errorThrown) {
+								const message = decodeURIComponent(escape(jqXHR.statusText));
+								Xcrud.show_error(message)
+								console.log(jqXHR.responseText);
+							},
 							cache: true
 						});
 					}, 300);
@@ -502,10 +507,11 @@ var Xcrud = {
 				if ($(crop_img).length) {
 					Xcrud.show_crop_window(crop_img, container);
 				}
-			},
-			error: function() {
+			}, error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
 				Xcrud.hide_progress(container);
-				Xcrud.show_error(Xcrud.lang('undefined_error'));
 			}
 		});
 	},
@@ -537,9 +543,11 @@ var Xcrud = {
 							$(upl_container).replaceWith(out);
 							$(document).trigger("xcrudaftercrop", [container, data]);
 						},
-						error: function() {
+						error: function(jqXHR, textStatus, errorThrown) {
+							const message = decodeURIComponent(escape(jqXHR.statusText));
+							Xcrud.show_error(message)
+							console.log(jqXHR.responseText);
 							Xcrud.hide_progress(container);
-							Xcrud.show_error(Xcrud.lang('undefined_error'));
 						},
 						type: "post",
 						url: Xcrud.config('url'),
@@ -569,9 +577,12 @@ var Xcrud = {
 						Xcrud.hide_progress(container);
 						$(upl_container).replaceWith(out);
 					},
-					error: function() {
+					error: function(jqXHR, textStatus, errorThrown) {
+						const message = decodeURIComponent(escape(jqXHR.statusText));
+						Xcrud.show_error(message)
+						console.log(jqXHR.responseText);
 						Xcrud.hide_progress(container);
-						Xcrud.show_error(Xcrud.lang('undefined_error'));
+
 					},
 					type: "post",
 					url: Xcrud.config('url'),
@@ -667,9 +678,11 @@ var Xcrud = {
 			url: Xcrud.config('url'),
 			dataType: "html",
 			cache: false,
-			error: function() {
+			error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
 				Xcrud.hide_progress(container);
-				Xcrud.show_error(Xcrud.lang('undefined_error'));
 			}
 		});
 	},
@@ -853,6 +866,11 @@ var Xcrud = {
 				}, 400);
 				el.select2();
 				$(parent).css('visibility', 'visible');
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
 			},
 			cache: false
 		});
@@ -1393,10 +1411,10 @@ var Xcrud = {
 			complete: function() {
 				Xcrud.hide_progress(container);
 				$(document).trigger("xcrudafterjoinrelation", [e.closest('.form-horizontal'), data, status]);
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				// console.log(textStatus);
-				// console.log(jqXHR);
+			}, error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
 			},
 			cache: false
 		});
@@ -1430,6 +1448,11 @@ var Xcrud = {
 								q: params.term,
 								xcrud: dados
 							};
+						},
+						error: function(jqXHR, textStatus, errorThrown) {
+							const message = decodeURIComponent(escape(jqXHR.statusText));
+							Xcrud.show_error(message)
+							console.log(jqXHR.responseText);
 						},
 						processResults: function(data, page) {
 							return {
@@ -1729,6 +1752,11 @@ $.extend({
 						print_win.print();
 					});
 				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
 			}
 		});
 	}

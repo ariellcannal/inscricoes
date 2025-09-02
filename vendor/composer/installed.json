@@ -235,13 +235,14 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:ariellcannal/pagamentos.git",
-                "reference": "295a4a2c4d401af5331f339142cda1a04ca55d19"
+                "reference": "e5f5d812e19bf0e30dcc6ae7716fe35b0ef28fae"
             },
             "require": {
-                "monolog/monolog": "^3.0",
-                "pagarme/pagarme-php-sdk": "~6.8"
+                "pagarme/pagarme-php-sdk": "~6.8",
+                "php": ">=8.1",
+                "psr/log": "^3.0"
             },
-            "time": "2025-09-02T15:34:15+00:00",
+            "time": "2025-09-02T21:05:19+00:00",
             "default-branch": true,
             "type": "project",
             "installation-source": "source",

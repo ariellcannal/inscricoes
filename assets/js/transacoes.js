@@ -7,12 +7,11 @@ function initTransacoes() {
 				Xcrud.show_success(response);
 				Xcrud.reload();
 			},
-                        error: function(jqXHR, textStatus, errorThrown) {
-                                const message = decodeURIComponent(escape(jqXHR.statusText));
-                                Xcrud.show_error(message);
-                                console.log(message);
-                                console.log(jqXHR.responseText);
-                        }
+			error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
+			}
 		});
 	});
 
@@ -43,12 +42,11 @@ function initTransacoes() {
 					alertify.alert('Resposta da operadora', response);
 				}
 			},
-                        error: function(jqXHR, textStatus, errorThrown) {
-                                const message = decodeURIComponent(escape(jqXHR.statusText));
-                                Xcrud.show_error(message);
-                                console.log(message);
-                                console.log(jqXHR.responseText);
-                        },
+			error: function(jqXHR, textStatus, errorThrown) {
+				const message = decodeURIComponent(escape(jqXHR.statusText));
+				Xcrud.show_error(message)
+				console.log(jqXHR.responseText);
+			},
 			complete: function() {
 				$('.estornar').html('Estornar').removeAttr('disabled');
 			},

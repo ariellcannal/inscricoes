@@ -53,7 +53,6 @@ class ComposerStaticInit606ee56f2596b5ce1ce844caced92724
             'Core\\' => 5,
             'CoreInterfaces\\' => 15,
             'CANNALPagamentos\\' => 17,
-            'CANNALInscricoes\\Libraries\\' => 27,
             'CANNALInscricoes\\Entities\\' => 26,
         ),
     );
@@ -122,10 +121,6 @@ class ComposerStaticInit606ee56f2596b5ce1ce844caced92724
         'CANNALPagamentos\\' => 
         array (
             0 => __DIR__ . '/..' . '/ariellcannal/pagamentos/src',
-        ),
-        'CANNALInscricoes\\Libraries\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/application/libraries',
         ),
         'CANNALInscricoes\\Entities\\' => 
         array (

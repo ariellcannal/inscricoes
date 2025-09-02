@@ -20,7 +20,7 @@ class SYS_Controller extends CI_Controller
      *
      * @var Logger
      */
-    protected Logger $logger;
+    public Logger $logger;
 
     function __construct()
     {

@@ -22,6 +22,5 @@ return array(
     'Core\\' => array($vendorDir . '/apimatic/core/src'),
     'CoreInterfaces\\' => array($vendorDir . '/apimatic/core-interfaces/src'),
     'CANNALPagamentos\\' => array($vendorDir . '/ariellcannal/pagamentos/src'),
-    'CANNALInscricoes\\Libraries\\' => array($baseDir . '/application/libraries'),
     'CANNALInscricoes\\Entities\\' => array($baseDir . '/application/entities'),
 );
