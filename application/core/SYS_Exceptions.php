@@ -5,7 +5,7 @@
  * @package    CannalInscricoes
  */
 
-use App\Libraries\Logs;
+use CANNALInscricoes\Libraries\Logs;
 
 /**
  * Class SYS_Exceptions

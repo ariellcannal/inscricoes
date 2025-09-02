@@ -1,5 +1,5 @@
 <?php
-use App\Libraries\Logs;
+use CANNALInscricoes\Libraries\Logs;
 use PHPMailer\PHPMailer\PHPMailer;
 
 defined('DIR_IMAGEM_USUARIOS') or define('DIR_IMAGEM_USUARIOS',  '/writable/usuarios/');
@@ -12,6 +12,11 @@ class SYS_Controller extends CI_Controller
 
     public ?array $vars = [];
 
+    /**
+     * Instância principal do gerenciador de logs.
+     *
+     * @var Logs
+     */
     protected Logs $logs;
 
     function __construct()

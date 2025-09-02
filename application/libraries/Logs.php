@@ -1,5 +1,5 @@
 <?php
-namespace App\Libraries;
+namespace CANNALInscricoes\Libraries;
 
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -13,16 +13,22 @@ class Logs
 {
     /**
      * Instância do logger.
+     *
+     * @var Logger
      */
     private Logger $logger;
 
     /**
      * Diretório onde os logs serão armazenados.
+     *
+     * @var string
      */
     private string $directory;
 
     /**
      * Nome base do arquivo de log.
+     *
+     * @var string
      */
     private string $logName;
 
@@ -48,6 +54,10 @@ class Logs
 
     /**
      * Define o nome do arquivo de log.
+     *
+     * @param string $logName Nome do arquivo de log.
+     *
+     * @return void
      */
     public function setLogName(string $logName): void
     {
@@ -57,6 +67,11 @@ class Logs
 
     /**
      * Escreve uma mensagem no log.
+     *
+     * @param string $level   Nível do log.
+     * @param string $message Mensagem a ser registrada.
+     *
+     * @return void
      */
     public function write(string $level, string $message): void
     {
@@ -65,6 +80,8 @@ class Logs
 
     /**
      * Cria a instância do logger com base no nome atual.
+     *
+     * @return void
      */
     private function createLogger(): void
     {
