@@ -1,7 +1,7 @@
 <?php
 use CANNALInscricoes\Entities\OperadorasTransacoesEntity;
 
-class Webhook extends SYS_Controller
+class Pagarme extends SYS_Controller
 {
 
     function __construct()
@@ -32,7 +32,7 @@ class Webhook extends SYS_Controller
      * @param array|null $wh Dados de webhook para testes.
      * @return void
      */
-    public function pagarme(?array $wh = null): void
+    public function index(?array $wh = null): void
     {
         $payload = $this->input->raw_input_stream;
         $headers = $this->input->request_headers(TRUE);
