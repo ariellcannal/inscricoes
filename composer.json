@@ -22,8 +22,7 @@
         ],
 	"autoload" : {
                 "psr-4" : {
-                "CANNALInscricoes\\Entities\\" : "application/entities/",
-                "CANNALInscricoes\\Libraries\\" : "application/libraries/"
+                "CANNALInscricoes\\Entities\\" : "application/entities/"
                 }
 	},
 	"minimum-stability" : "dev",

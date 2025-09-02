@@ -1,18 +1,28 @@
 <?php
-use CANNALInscricoes\Libraries\Logs;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger; 
 use CANNALInscricoes\Entities\OperadorasEntity;
 use CANNALInscricoes\Entities\RecebiveisEntity;
 use CANNALInscricoes\Entities\OperadorasTransacoesEntity;
-
+ 
 class Cron extends SYS_Controller
 {
+    /**
+     * Instância do logger da classe.
+     *
+     * @var Logger
+     */
+    private Logger $logger;
+
 
     /**
-     * Instância do gerenciador de logs.
+     * Diretório base dos logs do cron.
      *
-     * @var Logs
+     * @var string
      */
-    private Logs $logs;
+    private string $logDirectory;
 
     function __construct()
     {
@@ -21,10 +31,21 @@ class Cron extends SYS_Controller
         if (! is_cli() && ENVIRONMENT != 'development') {
             show_404();
         }
-        $this->logs = new Logs('cron');
+        $this->logDirectory = APPPATH . 'logs/cron/';
+        if (! is_dir($this->logDirectory)) {
+            mkdir($this->logDirectory, 0777, true);
+        }
+        $this->logger = new Logger('cron');
     }
 
-    private function setLockFile($name)
+    /**
+     * Cria arquivo de lock para evitar execuções simultâneas.
+     *
+     * @param string $name Nome do processo.
+     *
+     * @return void
+     */
+    private function setLockFile(string $name): void
     {
         $lockFile = APPPATH . 'cache/cron_' . $name . '.lock';
 
@@ -32,7 +53,7 @@ class Cron extends SYS_Controller
         if (file_exists($lockFile)) {
             $lastModified = filemtime($lockFile);
             if ((time() - $lastModified) < 600) { // menos de 10 minutos
-                $this->logs->write('ERROR', $name . ' já está em execução.');
+                $this->logger->error($name . ' já está em execução.');
                 return;
             }
         }
@@ -40,7 +61,14 @@ class Cron extends SYS_Controller
         file_put_contents($lockFile, time());
     }
 
-    private function unsetLockFile($name)
+    /**
+     * Remove o arquivo de lock do processo.
+     *
+     * @param string $name Nome do processo.
+     *
+     * @return void
+     */
+    private function unsetLockFile(string $name): void
     {
         @unlink(APPPATH . 'cache/cron_' . $name . '.lock');
     }
@@ -49,82 +77,97 @@ class Cron extends SYS_Controller
      *
      * /usr/local/bin/php /home/grupotapa/public_html/grupos/index.php cron hora >> /home/grupotapa/public_html/grupos/application/logs/cron/cron-`date +\%Y-\%m-\%d`.log; echo "" >> /home/grupotapa/public_html/grupos/application/logs/cron/cron-`date +\%Y-\%m-\%d`.log
      */
-    function cincoMinutos()
+    function cincoMinutos(): void
     {
         $name = 'cincoMinutos';
-        $this->logs->setLogName($name . '-' . date('Y-m-d'));
+        $this->setLogFile($name . '-' . date('Y-m-d'));
         $this->setLockFile($name);
         try {
             $this->_atualizaTransacoesVencidas();
             $this->_atualizaTransacoesRecentes();
         } catch (Exception $e) {
-            $this->logs->write('ERROR', $name . ' - ' . $e->getMessage());
+            $this->logger->error($name . ' - ' . $e->getMessage());
         }
         $this->unsetLockFile($name);
     }
 
-    function hora()
+    function hora(): void
     {
         $name = 'hora';
-        $this->logs->setLogName($name . '-' . date('Y-m-d'));
+        $this->setLogFile($name . '-' . date('Y-m-d'));
         $this->setLockFile($name);
         try {} catch (Exception $e) {
-            $this->logs->write('ERROR', $name . ' - ' . $e->getMessage());
+            $this->logger->error($name . ' - ' . $e->getMessage());
         }
         $this->unsetLockFile($name);
     }
 
-    function dia()
+    function dia(): void
     {
         $name = 'dia';
-        $this->logs->setLogName($name . '-' . date('Y-m-d'));
+        $this->setLogFile($name . '-' . date('Y-m-d'));
         $this->setLockFile($name);
         try {
             $this->sincronizarPrevistosAteHoje();
         } catch (Exception $e) {
-            $this->logs->write('ERROR', $name . ' - ' . $e->getMessage());
+            $this->logger->error($name . ' - ' . $e->getMessage());
         }
         $this->unsetLockFile($name);
     }
 
-    function semana()
+    function semana(): void
     {
         $name = 'semana';
-        $this->logs->setLogName($name . '-' . date('Y-m-d'));
+        $this->setLogFile($name . '-' . date('Y-m-d'));
         $this->setLockFile($name);
         try {} catch (Exception $e) {
-            $this->logs->write('ERROR', $name . ' - ' . $e->getMessage());
+            $this->logger->error($name . ' - ' . $e->getMessage());
         }
         $this->unsetLockFile($name);
     }
 
-    function mes()
+    function mes(): void
     {
         $name = 'mes';
-        $this->logs->setLogName($name . '-' . date('Y-m-d'));
+        $this->setLogFile($name . '-' . date('Y-m-d'));
         $this->setLockFile($name);
         try {} catch (Exception $e) {
-            $this->logs->write('ERROR', $name . ' - ' . $e->getMessage());
+            $this->logger->error($name . ' - ' . $e->getMessage());
         }
         $this->unsetLockFile($name);
     }
 
-    function _atualizaTransacoesVencidas()
+    function _atualizaTransacoesVencidas(): void
     {
         $this->load->library('controllers/TransacoesLib', null, 'transacoes');
         $this->transacoes->sincronizaTransacoesVencidas();
     }
 
-    function _atualizaTransacoesRecentes()
+    function _atualizaTransacoesRecentes(): void
     {
         $this->load->library('controllers/TransacoesLib', null, 'transacoes');
         $this->transacoes->sincronizar(null, 2);
     }
 
-    function sincronizarPrevistosAteHoje()
+    function sincronizarPrevistosAteHoje(): void
     {
         $this->load->library('controllers/RecebiveisLib', null, 'recebiveis');
         $this->recebiveis->sincronizarPrevistosAteHoje();
+    }
+
+    /**
+     * Configura o arquivo de log para o processo atual.
+     *
+     * @param string $logName Nome do arquivo de log.
+     *
+     * @return void
+     */
+    private function setLogFile(string $logName): void
+    {
+        $path = $this->logDirectory . $logName . '.log';
+        $handler = new StreamHandler($path, Level::Debug);
+        $handler->setFormatter(new LineFormatter(null, null, true, true));
+        $this->logger->setHandlers([$handler]);
     }
 }
 
