@@ -2,7 +2,7 @@
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
-use Monolog\Logger;
+use Monolog\Logger; 
 use CANNALInscricoes\Entities\OperadorasEntity;
 use CANNALInscricoes\Entities\RecebiveisEntity;
 use CANNALInscricoes\Entities\OperadorasTransacoesEntity;
