@@ -1,4 +1,8 @@
 <?php
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
 use CANNALInscricoes\Entities\OperadorasTransacoesEntity;
 
 class Webhook extends SYS_Controller
@@ -41,12 +45,19 @@ class Webhook extends SYS_Controller
         $get  = $this->input->get(NULL, TRUE);
 
         if (! $wh) {
-            $this->logs->setLogDir('Webhook/pagarme');
-            $this->logs->setLogName('webhook_' . date('Y-m-d_H:i:s'));
-            $this->logs->write('DEBUG', 'HEADERS' . PHP_EOL . print_r($headers, true));
-            $this->logs->write('DEBUG', 'POST' . PHP_EOL . print_r($post, true));
-            $this->logs->write('DEBUG', 'GET' . PHP_EOL . print_r($get, true));
-            $this->logs->write('DEBUG', 'INPUT' . PHP_EOL . $payload);
+            $logDir = APPPATH . 'logs/Webhook/pagarme/';
+            if (! is_dir($logDir)) {
+                mkdir($logDir, 0777, true);
+            }
+            $logFile = $logDir . 'webhook_' . date('Y-m-d_H:i:s') . '.log';
+            $logger = new Logger('webhook');
+            $handler = new StreamHandler($logFile, Level::Debug);
+            $handler->setFormatter(new LineFormatter(null, null, true, true));
+            $logger->pushHandler($handler);
+            $logger->debug('HEADERS' . PHP_EOL . print_r($headers, true));
+            $logger->debug('POST' . PHP_EOL . print_r($post, true));
+            $logger->debug('GET' . PHP_EOL . print_r($get, true));
+            $logger->debug('INPUT' . PHP_EOL . $payload);
             $wh = json_decode($payload, true);
         }
         

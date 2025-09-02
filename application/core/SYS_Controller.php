@@ -1,5 +1,8 @@
 <?php
-use CANNALLogs\Logs;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
 use PHPMailer\PHPMailer\PHPMailer;
 
 defined('DIR_IMAGEM_USUARIOS') or define('DIR_IMAGEM_USUARIOS',  '/writable/usuarios/');
@@ -11,6 +14,13 @@ class SYS_Controller extends CI_Controller
 {
 
     public ?array $vars = [];
+
+    /**
+     * Instância padrão do logger.
+     *
+     * @var Logger
+     */
+    protected Logger $logger;
 
     function __construct()
     {
@@ -54,7 +64,11 @@ class SYS_Controller extends CI_Controller
             $html_errors = true;
         }
 
-        $this->logs = new Logs();
+        $this->logger = new Logger('app');
+        $logPath = APPPATH . 'logs/' . date('Y-m-d') . '.log';
+        $handler = new StreamHandler($logPath, Level::Debug);
+        $handler->setFormatter(new LineFormatter(null, null, true, true));
+        $this->logger->pushHandler($handler);
     }
 
     public function initMail()

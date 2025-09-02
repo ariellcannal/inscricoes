@@ -5,7 +5,10 @@
  * @package    CannalInscricoes
  */
 
-use CANNALLogs\Logs;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
 
 /**
  * Class SYS_Exceptions
@@ -15,11 +18,18 @@ use CANNALLogs\Logs;
 class SYS_Exceptions extends CI_Exceptions
 {
     /**
-     * Objeto de log.
+     * Instância do logger de exceptions.
      *
-     * @var Logs|null
+     * @var Logger
      */
-    private ?Logs $logger = null;
+    private Logger $logger;
+
+    /**
+     * Diretório dos logs de exceptions.
+     *
+     * @var string
+     */
+    private string $logDirectory;
 
     /**
      * Construtor da classe.
@@ -27,7 +37,11 @@ class SYS_Exceptions extends CI_Exceptions
     public function __construct()
     {
         parent::__construct();
-        $this->logger = new Logs('exceptions');
+        $this->logDirectory = APPPATH . 'logs/exceptions/';
+        if (! is_dir($this->logDirectory)) {
+            mkdir($this->logDirectory, 0777, true);
+        }
+        $this->logger = new Logger('exceptions');
     }
 
     /**
@@ -45,7 +59,7 @@ class SYS_Exceptions extends CI_Exceptions
         $type = is_int($severity) && isset($this->levels[$severity]) ? $this->levels[$severity] : (string) $severity;
         $timestamp = date('Y.m.d-H:i:s');
         $fileName = $timestamp . '-' . preg_replace('/[^A-Za-z0-9-_.]/', '_', $message) . '.log';
-        $this->logger->setLogName($fileName);
+        $this->setLogFile($fileName);
 
         $vars = $GLOBALS;
         unset($vars['GLOBALS']);
@@ -61,7 +75,7 @@ class SYS_Exceptions extends CI_Exceptions
             '_ENV'      => $_ENV,
             'input'     => file_get_contents('php://input'),
         ];
-        $this->logger->write('ERROR', json_encode($data, JSON_PRETTY_PRINT | JSON_PARTIAL_OUTPUT_ON_ERROR));
+        $this->logger->error(json_encode($data, JSON_PRETTY_PRINT | JSON_PARTIAL_OUTPUT_ON_ERROR));
 
         if (ENVIRONMENT === 'production') {
             $this->sendExceptionMail($type, 'exceptions/' . $fileName);
@@ -91,5 +105,20 @@ class SYS_Exceptions extends CI_Exceptions
         $CI->mail->Body = $body;
         $CI->mail->addAddress(config_item('email_dev'));
         $CI->mail->send();
+    }
+
+    /**
+     * Define o arquivo de log utilizado pela instância do logger.
+     *
+     * @param string $logName Nome do arquivo de log.
+     *
+     * @return void
+     */
+    private function setLogFile(string $logName): void
+    {
+        $path = $this->logDirectory . $logName;
+        $handler = new StreamHandler($path, Level::Debug);
+        $handler->setFormatter(new LineFormatter(null, null, true, true));
+        $this->logger->setHandlers([$handler]);
     }
 }

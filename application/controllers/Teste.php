@@ -4,7 +4,10 @@ use CANNALPagamentos\Entities\Cliente;
 use CANNALPagamentos\Entities\Cartao;
 use CANNALPagamentos\Entities\Pedido;
 use CANNALInscricoes\Entities\OperadorasEntity;
-use CANNALLogs\Logs;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
 use CANNALInscricoes\Entities\AlunosCreditosEntity;
 
 class Teste extends SYS_Controller
@@ -36,8 +39,15 @@ class Teste extends SYS_Controller
         $this->load->view('teste.html');
         return;
 
-        $log = new Logs('teste\test:sde', 'parac:unde');
-        $log->write('debug', 'teste');
+        $logDir = APPPATH . 'logs/';
+        if (! is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
+        $logger = new Logger('teste');
+        $handler = new StreamHandler($logDir . 'teste.log', Level::Debug);
+        $handler->setFormatter(new LineFormatter(null, null, true, true));
+        $logger->pushHandler($handler);
+        $logger->debug('teste');
         exit();
 
         $this->load->model('alunos_model');
