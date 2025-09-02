@@ -27,8 +27,8 @@ class Configuration
     private $backoffFactor = 2.0;         // backoff factor to be used to increase retry interval
     private $httpStatusCodesToRetry = [408, 413, 429, 500, 502, 503, 504, 521, 522, 524];
     private $httpMethodsToRetry = ["GET", "PUT"];
-    private $verifyPeer = false;
-    private $verifyHost = false;
+    private $verifyPeer = true;
+    private $verifyHost = true;
     private $defaultHeaders = [];
 
     private $auth =  [
