@@ -7,6 +7,7 @@
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
+use PHPMailer\PHPMailer\PHPMailer;
 
 /**
  * Class SYS_Exceptions
