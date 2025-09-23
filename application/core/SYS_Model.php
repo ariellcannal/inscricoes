@@ -28,8 +28,7 @@ class SYS_Model extends CI_Model
     
     function checkFunctions()
     {
-        $this->db->query('DROP FUNCTION IF EXISTS EXTRACT_NUMBERS;');
-        $this->db->query("CREATE FUNCTION EXTRACT_NUMBERS(field VARCHAR(50)) RETURNS BIGINT
+        $this->db->query("CREATE FUNCTION IF NOT EXISTS EXTRACT_NUMBERS(field VARCHAR(50)) RETURNS BIGINT
                  NO SQL
                  BEGIN
             DECLARE ls INTEGER;
@@ -47,8 +46,7 @@ class SYS_Model extends CI_Model
             RETURN str;
         END;");
         
-        $this->db->query('DROP FUNCTION IF EXISTS DATA_RECEBIMENTO;');
-        $this->db->query("CREATE FUNCTION DATA_RECEBIMENTO(
+        $this->db->query("CREATE FUNCTION IF NOT EXISTS DATA_RECEBIMENTO(
             dataTransacao DATE,
             dataRecebimento DATE
         )
