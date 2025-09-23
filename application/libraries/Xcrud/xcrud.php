@@ -8596,7 +8596,7 @@ class Xcrud
                 $destHeight = ($destHeight / $ratio);
             }
         }
-        $dstHandle = imagecreatetruecolor($destWidth, $destHeight);
+        $dstHandle = @imagecreatetruecolor($destWidth, $destHeight);
         switch ($type) {
             case 1:
                 $transparent_source_index = imagecolortransparent($srcHandle);

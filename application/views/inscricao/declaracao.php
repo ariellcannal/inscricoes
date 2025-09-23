@@ -19,7 +19,7 @@ setlocale(LC_ALL, 'pt_BR');
 	</header>
 	<section>
 		<p>
-			Declaramos que <strong><?php echo $alu['alu_nomeArtistico']?></strong>, CPF <strong><?php echo $alu['alu_cpf']?></strong> participou do grupo
+			Declaramos que <strong><?php echo ucwords($alu['alu_nome'])?></strong>, CPF <strong><?php echo $alu['alu_cpf']?></strong> participou do grupo
 			de estudo de "<strong><?php echo $grp['grp_nomePublico']?></strong>", com <?php echo $grp_coordenadores?>, no Grupo TAPA, por <?php echo $grp['grp_encontros']?> encontros, de <?php echo $grp['grp_dataInicio']?> até <?php echo $grp['grp_dataFim']?>, perfazendo uma carga total de <strong><?php echo $carga_horaria?> horas</strong>.
 		</p>
 		<p>Sem mais,</p>
