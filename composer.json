@@ -1,33 +1,52 @@
 {
-        "name" : "ariellcannal/inscricoes",
-        "type" : "project",
-        "description" : "Aplicação de inscrições com logging via Monolog",
-        "homepage" : "https://inscricoes.cannal.com.br",
-        "license" : "MIT",
+	"name" : "ariellcannal/inscricoes",
+	"description" : "CANNAL Inscrições",
+	"license" : "MIT",
+	"type" : "project",
+	"homepage" : "https://inscricoes.cannal.com.br",
 	"require" : {
-		"php" : ">=8.0.0",
-		"dompdf/dompdf" : "~2.0",
-                "phpmailer/phpmailer" : "~6.9",
-                "ariellcannal/pagamentos" : "master",
-                "monolog/monolog" : "^3.5"
+		"php" : "^8.1",
+		"codeigniter4/framework" : "^4.0",
+		"ariellcannal/xcrud" : "master"
 	},
 	"require-dev" : {
-		"phpseclib/phpseclib" : "~3.0"
+		"fakerphp/faker" : "^1.9",
+		"mikey179/vfsstream" : "^1.6",
+		"phpunit/phpunit" : "^10.5.16"
 	},
 	"repositories" : [{
 			"type" : "git",
-			"url" : "git@github.com:ariellcannal/pagamentos.git",
-			"name" : "pagamentos"
-                }
-        ],
-	"autoload" : {
-                "psr-4" : {
-                "CANNALInscricoes\\Entities\\" : "application/entities/"
-                }
-	},
+			"url" : "git@github.com:ariellcannal/xcrud.git",
+			"name" : "xcrud"
+		}
+	],
 	"minimum-stability" : "dev",
 	"prefer-stable" : true,
-        "config" : {
-                "notify-on-install" : false
-        }
+	"autoload" : {
+		"psr-4" : {
+			"App\\" : "app/",
+			"Config\\" : "app/Config/"
+		},
+		"exclude-from-classmap" : [
+			"**/Database/Migrations/**"
+		]
+	},
+	"autoload-dev" : {
+		"psr-4" : {
+			"Tests\\Support\\" : "tests/_support"
+		}
+	},
+	"config" : {
+		"optimize-autoloader" : true,
+		"preferred-install" : "dist",
+		"sort-packages" : true,
+		"allow-plugins" : {
+			"composer/installers" : true
+		}
+	},
+	"scripts" : {
+		"test" : "phpunit",
+		"post-install-cmd" : "CANNALxcrud\\Installer::postInstall",
+		"post-update-cmd" : "CANNALxcrud\\Installer::postInstall"
+	}
 }
