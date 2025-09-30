@@ -171,7 +171,7 @@ class Repasses_model extends SYS_Model
                     $rep['rep_valor'] += $rre_valor;
                     $update_rre[] = $rre_id;
                 }
-                if ($rep['rep_valor'] > 0) {
+                if ($rep['rep_valor'] != 0) {
                     $this->db->insert('repasses', $rep);
                     
                     $this->db->where_in('rre_id', $update_rre);
