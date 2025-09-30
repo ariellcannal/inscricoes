@@ -27,10 +27,10 @@ class TransacoesLib
 
         if (is_array($otr_id)) {
             foreach ($otr_id as $otr) {
-                if(is_array($id)){
+                if(is_array($otr)){
                     $transacoes[] = $otr;
                 }
-                else if (is_int($id) && $otr = $this->CI->operadoras_model->getTransacao($otr)) {
+                else if (is_int($otr) && $otr = $this->CI->operadoras_model->getTransacao($otr)) {
                     $transacoes[] = $otr;
                 }
             }
