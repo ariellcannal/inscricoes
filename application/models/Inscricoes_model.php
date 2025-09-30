@@ -90,10 +90,11 @@ class Inscricoes_model extends SYS_Model
         $this->db->where('otr_inscricao', $ins_id);
         $totalPago = $this->db->get('operadoras_transacoes')->row_array()['totalPago'];
 
+        /* INSERIDOS MANUALMENTE */
         $this->db->select('IFNULL(SUM(rec_valor),0) as totalPago', false);
-        $this->db->where('rec_transacao', null);
+        //$this->db->where('rec_transacao', null);
         $this->db->where('rec_inscricao', $ins_id);
-        $totalPago += $this->db->get('recebiveis')->row_array()['totalPago'];
+        $totalPago = $this->db->get('recebiveis')->row_array()['totalPago'];
 
         $totalDevido = $valorModulo - $totalPago;
 

@@ -2758,6 +2758,7 @@ class Xcrud
             if (! self::$js_loaded && ! Xcrud_config::$manual_load) {
                 $contents .= self::load_js();
             }
+            http_response_code(200);
             $this->after_render();
         }
         return $contents;
