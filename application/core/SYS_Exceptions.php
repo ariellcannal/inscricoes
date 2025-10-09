@@ -37,7 +37,7 @@ class SYS_Exceptions extends CI_Exceptions
     public function __construct()
     {
         parent::__construct();
-        $this->logFileName = 'exceptions/' . date('Y.m.d') . '.log';
+        $this->logFileName = 'exceptions/' . date('Y.m.d_Hi') . '.log';
         $this->logger = new Logger('exceptions', [
             new StreamHandler(APPPATH . 'logs/' . $this->logFileName, Level::Debug)
         ]);
@@ -73,21 +73,21 @@ class SYS_Exceptions extends CI_Exceptions
         ];
         switch ($type) {
             case strstr(strtolower($type), 'error'):
-                $this->logger->error($message);
+                $this->logger->error(print_r($data,true));
                 break;
             case strstr(strtolower($type), 'warning'):
-                $this->logger->warning($message);
+                $this->logger->warning(print_r($data,true));
                 break;
             case strstr(strtolower($type), 'notice'):
-                $this->logger->notice($message);
+                $this->logger->notice(print_r($data,true));
                 break;
             default:
-                $this->logger->info($message);
+                $this->logger->info(print_r($data,true));
                 break;
         }
 
         if (ENVIRONMENT === 'production') {
-            $this->sendExceptionMail($type, $this->logFileName);
+            $this->sendExceptionMail($data);
         }
     }
 
@@ -107,15 +107,12 @@ class SYS_Exceptions extends CI_Exceptions
         $CI = &get_instance();
         $CI->load->helper('url');
 
-        $link = site_url('config/show_log/' . $logPath);
-        $conteudo = 'O ambiente de produção gerou uma exception que foi registrada em log.<br>';
-        $conteudo .= '<a href="' . $link . '" style="display:inline-block;padding:10px 15px;background:#0d6efd;color:#fff;text-decoration:none;">Ver log</a>';
         $body = $CI->load->view('emails/_layout', [
-            'conteudo' => $conteudo
+            'conteudo' => 'O ambiente de produção gerou uma exception:<br/><pre>'.print_r($data,true).'</pre>'
         ], true);
 
         $CI->mail->clearAllRecipients();
-        $CI->mail->Subject = '[' . $type . '] CANNAL Inscrições';
+        $CI->mail->Subject = '[Exception] CANNAL Inscrições';
         $CI->mail->Body = $body;
         $CI->mail->addAddress(config_item('email_dev'));
         $CI->mail->send();
