@@ -61,7 +61,7 @@ class Alunos extends SYS_Controller
         ]);
 
         $xcrud->custom_button('#', 'Enviar Formulário', 'btn-icon fab fa-wpforms', 'btn btn-sm btn-info formulario', [
-            'data-msg' => 'Por favor, faça o seu cadastro utilizando o link: ' . site_url('/alunos/cadastrar')
+            'data-msg' => 'Por favor, faça o seu cadastro utilizando o link: ' . site_url('/alunos/cadastrar/'.base64_encode('0:'.time()))
         ]);
         $xcrud->button('#', "Solicitar Atualização de Cadastro", 'fab fa-wpforms', 'btn btn-info formulario', [
             'data-primary' => '{alu_id}',
@@ -261,8 +261,11 @@ class Alunos extends SYS_Controller
         return $this->_formulario($token, 'atualizar');
     }
 
-    public function cadastrar($token)
+    public function cadastrar(?string $token = null)
     {
+        if(empty($token)){
+            show_404();
+        }
         return $this->_formulario($token, 'cadastrar');
     }
 
