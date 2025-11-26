@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="<?php echo site_url('/writable/logos/CANNAL_SIMB_POS192x192.png');?>" rel="icon" media="(prefers-color-scheme: light)">
 <link href="<?php echo site_url('/writable/logos/CANNAL_SIMB_NEG192x192.png');?>" rel="icon" media="(prefers-color-scheme: dark)">
-<title><?php isset($title)?$title:'CANNAL Produções'?></title>
+<title>Inscrições - CANNAL</title>
     <?php $this->assets->print_view_head()?>
     <?php $this->assets->renderInline();?>
 <script>
