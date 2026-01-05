@@ -38,8 +38,12 @@ class Recebiveis_model extends SYS_Model
             ];
         }
 
-        $this->db->where('dst_grupo', $rec['ins_grupo']);
-        $dst = $this->db->get('grupos_distribuicao')->result_array();
+        $this->db->where('dst_forma', $rec['ins_forma']);
+        if (! $dst = $this->db->get('grupos_distribuicao')->result_array()) {
+            $this->db->where('dst_grupo', $rec['ins_grupo']);
+            $dst = $this->db->get('grupos_distribuicao')->result_array();
+        }
+
         $soma = 0;
         foreach ($dst as $row) {
             $soma += $row['dst_porcentagem'];
@@ -93,9 +97,13 @@ class Recebiveis_model extends SYS_Model
             /* repasses já inseridos */
             return false;
         }
-
-        $this->db->where('dst_grupo', $rec['ins_grupo']);
-        $dst = $this->db->get('grupos_distribuicao')->result_array();
+        
+        $this->db->where('dst_forma', $rec['ins_forma']);
+        if (! $dst = $this->db->get('grupos_distribuicao')->result_array()) {
+            $this->db->where('dst_grupo', $rec['ins_grupo']);
+            $dst = $this->db->get('grupos_distribuicao')->result_array();
+        }
+        
         $soma = 0;
         foreach ($dst as $row) {
             $valor_rep = $rec['rec_valorLiquido'] * ($row['dst_porcentagem'] / 100);
@@ -109,7 +117,7 @@ class Recebiveis_model extends SYS_Model
                 $cents = '00';
             }
             $valor_rep = $parts[0] . '.' . $cents;
-            
+
             $valor_rep = round($rec['rec_valorLiquido'] * ($row['dst_porcentagem'] / 100), 2);
             $soma += $valor_rep;
             $rre[] = array(
@@ -169,7 +177,7 @@ class Recebiveis_model extends SYS_Model
         $this->db->where('rec_dataRecebimento <=', date('Y-m-d', strtotime($data_ate)));
         $this->db->where('rec_recebido', false);
         $result = $this->db->get('recebiveis');
-        //echo $this->db->last_query();exit;
+        // echo $this->db->last_query();exit;
         return $result->result_array();
     }
 

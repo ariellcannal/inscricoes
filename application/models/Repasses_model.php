@@ -62,7 +62,22 @@ class Repasses_model extends SYS_Model
             $retorno[$grp['grp_id']]['grupo'] = $grp['grp_nome'];
             $retorno[$grp['grp_id']]['total_grupo'] = $this->db->query('SELECT SUM(rec_valorLiquido) as totalGrupo FROM recebiveis JOIN inscricoes ON ins_id = rec_inscricao WHERE ins_grupo = ' . $grp_id)->row_array()['totalGrupo'];
             $retorno[$grp['grp_id']]['repassado'] = $this->db->query('SELECT SUM(rre_valor) as repassado FROM recebiveis_repasses JOIN recebiveis ON rre_recebivel = rec_id JOIN inscricoes ON ins_id = rec_inscricao WHERE rre_usuario = ' . $usr_id . ' AND ins_grupo = ' . $grp_id)->row_array()['repassado'];
-            $r = $this->db->query('SELECT SUM(rec_valorLiquido*(dst_porcentagem/100)) as aRepassar, dst.dst_porcentagem FROM recebiveis JOIN inscricoes ON ins_id = rec_inscricao JOIN grupos_distribuicao dst ON ins_grupo = dst_grupo WHERE dst_usuario = ' . $usr_id . ' AND ins_grupo = ' . $grp_id)->row_array();
+            $r = $this->db->query('
+                SELECT
+                    SUM(rec_valorLiquido * (dst_porcentagem / 100)) AS aRepassar,
+                    dst.dst_porcentagem
+                FROM recebiveis
+                JOIN inscricoes
+                    ON ins_id = rec_inscricao
+                JOIN grupos_distribuicao dst
+                    ON (
+                        (dst_forma IS NOT NULL AND ins_forma = dst_forma)
+                        OR
+                        (dst_forma IS NULL AND ins_grupo = dst_grupo)
+                    )
+                WHERE dst_usuario = ' . (int) $usr_id . '
+                  AND ins_grupo = ' . (int) $grp_id . '
+            ')->row_array();
             $retorno[$grp['grp_id']]['a_repassar'] = $r['aRepassar'] - $retorno[$grp['grp_id']]['repassado'];
             $retorno[$grp['grp_id']]['porcentagem'] = $r['dst_porcentagem'];
         }
@@ -84,17 +99,22 @@ class Repasses_model extends SYS_Model
                             ELSE DATE_ADD(DATA_RECEBIMENTO(rec.rec_dataTransacao,rec.rec_dataRecebimento), INTERVAL (10 - DAYOFWEEK(DATA_RECEBIMENTO(rec.rec_dataTransacao,rec.rec_dataRecebimento))) % 7 DAY)
                             END,'%d/%m/%Y') AS proximoRepasse", false);
         $this->db->from('recebiveis rec');
-        $this->db->join('operadoras_transacoes otr', 'rec.rec_transacao = otr.otr_id AND otr.otr_confirmada = 1','LEFT');
+        $this->db->join('operadoras_transacoes otr', 'rec.rec_transacao = otr.otr_id AND otr.otr_confirmada = 1', 'LEFT');
         $this->db->join('inscricoes ins', 'rec.rec_inscricao = ins.ins_id');
         $this->db->join('grupos grp', 'grp.grp_id = ins.ins_grupo');
         $this->db->join('alunos alu', 'alu.alu_id = ins.ins_aluno');
-        $this->db->join('grupos_distribuicao dst', 'dst.dst_grupo = grp.grp_id');
+        // $this->db->join('grupos_distribuicao dst', 'dst.dst_grupo = grp.grp_id');
+        $this->db->join('grupos_distribuicao dst', '(
+            (dst.dst_forma IS NOT NULL AND ins.ins_forma = dst.dst_forma)
+            OR
+            (dst.dst_forma IS NULL AND ins.ins_grupo = dst.dst_grupo)
+         )', 'INNER', false);
         $this->db->where('dst.dst_usuario', $usr_id);
         $this->db->where('rec.rec_valorLiquido >', '0');
         $this->db->where('grp.grp_repasseAtivado', '1');
         $this->db->where('rec.rec_id NOT IN (SELECT rre.rre_recebivel FROM recebiveis_repasses rre WHERE rre_repasse IS NOT NULL)', null, false);
         $this->db->order_by('rec_dataRecebimento', 'ASC');
-        //print $query = $this->db->get_compiled_select();exit();
+        // print $query = $this->db->get_compiled_select();exit();
         $r = $this->db->get();
         return $r->result_array();
     }
@@ -128,26 +148,24 @@ class Repasses_model extends SYS_Model
         ));
         return $this->db->affected_rows();
     }
-    
-    function getRepassesEmRetencao(bool $retornarTotal = false){
-        if($retornarTotal){
+
+    function getRepassesEmRetencao(bool $retornarTotal = false)
+    {
+        if ($retornarTotal) {
             $this->db->select('SUM(rre_valor) as total');
-        }
-        else{
+        } else {
             $this->db->select('rre_id,rre_usuario,rre_valor');
         }
-        
+
         $this->db->join('recebiveis', 'rre_recebivel = rec_id');
         $this->db->where('rre_repasse', null);
         $this->db->where('rec_dataTransacao >=', date('Y-m-d', strtotime('- ' . $this->retencaoRepasse . ' days')) . ' 00:00:00');
-        //$query = $this->db->get_compiled_select('recebiveis_repasses');exit($query);
-        if($retornarTotal){
+        // $query = $this->db->get_compiled_select('recebiveis_repasses');exit($query);
+        if ($retornarTotal) {
             return $this->db->get('recebiveis_repasses')->row_array()['total'];
-        }
-        else{
+        } else {
             return $this->db->get('recebiveis_repasses')->result_array();
         }
-        
     }
 
     function consolidar()
@@ -173,7 +191,7 @@ class Repasses_model extends SYS_Model
                 }
                 if ($rep['rep_valor'] != 0) {
                     $this->db->insert('repasses', $rep);
-                    
+
                     $this->db->where_in('rre_id', $update_rre);
                     $this->db->update('recebiveis_repasses', [
                         'rre_repasse' => $this->db->insert_id()

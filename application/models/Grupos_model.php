@@ -131,12 +131,6 @@ class Grupos_model extends SYS_Model
         return $this->dbutil->csv_from_result($r);
     }
 
-    function getDistribuicao($grp_id)
-    {
-        $this->db->where('dst_grupo', $grp_id);
-        return $this->db->get('grupos_distribuicao')->result_array();
-    }
-
     function cloneGrupo($old_id, $new_id, $clonarInscricoes = false)
     {
         $ins = array();

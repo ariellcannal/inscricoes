@@ -32,7 +32,7 @@ if (! function_exists('BI_gfp')) {
         }
         $total = str_replace('.', '', $postdata->get('gfp_valorTotal'));
         $total = (float) str_replace(',', '.', $total);
-        $postdata->set('gfp_descricao', 'R$'.number_format($total,2,',','.') . ' ' . ($postdata->get('gfp_parcelas') > 1 ? 'em até ' . $postdata->get('gfp_parcelas') . 'x no' : 'no') . ' ' . ($postdata->get('gfp_aceitaCartao') ? "cartão de crédito" : "PIX"));
+        $postdata->set('gfp_descricao', 'R$' . number_format($total, 2, ',', '.') . ' ' . ($postdata->get('gfp_parcelas') > 1 ? 'em até ' . $postdata->get('gfp_parcelas') . 'x no' : 'no') . ' ' . ($postdata->get('gfp_aceitaCartao') ? "cartão de crédito" : "PIX"));
     }
 }
 if (! function_exists('BU_gfp')) {
@@ -41,7 +41,7 @@ if (! function_exists('BU_gfp')) {
     {
         $total = str_replace('.', '', $postdata->get('gfp_valorTotal'));
         $total = (float) str_replace(',', '.', $total);
-        $postdata->set('gfp_descricao', 'R$'.number_format($total,2,',','.') . ' ' . ($postdata->get('gfp_parcelas') > 1 ? 'em até ' . $postdata->get('gfp_parcelas') . 'x no' : 'no') . ' ' . ($postdata->get('gfp_aceitaCartao') ? "cartão de crédito" : "PIX"));
+        $postdata->set('gfp_descricao', 'R$' . number_format($total, 2, ',', '.') . ' ' . ($postdata->get('gfp_parcelas') > 1 ? 'em até ' . $postdata->get('gfp_parcelas') . 'x no' : 'no') . ' ' . ($postdata->get('gfp_aceitaCartao') ? "cartão de crédito" : "PIX"));
     }
 }
 if (! function_exists('linkWhatsGrupo')) {
@@ -64,7 +64,7 @@ if (! function_exists('BI_presenca')) {
         $ci = &get_instance();
         $ci->load->helper('alunos_helper');
         $ci->load->library('controllers/AlunosLib', null, 'alunos');
-        
+
         if (count($aluno)) {
             $alu = $ci->alunos->check($aluno);
             $alu_id = $alu['alu_id'];
@@ -91,5 +91,19 @@ if (! function_exists('BI_presenca')) {
         }
         setcookie('tapa_presenca_ultimo', date('Y-m-d H:i:s'), time() + 3600, '/', 'oficinas.cannal.com.br', true);
         setcookie('tapa_presenca', $alu_id, time() + 3600, '/', 'oficinas.cannal.com.br', true);
+    }
+}
+
+if (! function_exists('callback_set_grupo')) {
+
+    function callback_set_grupo($postdata, $xcrud)
+    {
+        if ($postdata->get('dst_forma')) {
+            $ci = &get_instance();
+            $ci->load->model('grupos_model');
+            if ($gfp = $ci->grupos_model->getForma($postdata->get('dst_forma'))) {
+                $postdata->set('dst_grupo', $gfp['gfp_grupo']);
+            }
+        }
     }
 }

@@ -14,6 +14,8 @@ class GruposDistribuicaoEntity extends \SYS_Entity
 
     protected int $grupo = 0;
 
+    protected int $forma = 0;
+
     protected int $usuario = 0;
 
     protected int $porcentagem = 0;
@@ -70,6 +72,28 @@ class GruposDistribuicaoEntity extends \SYS_Entity
     public function setGrupo(int $grupo): self
     {
         $this->grupo = $grupo;
+        return $this;
+    }
+
+    /**
+     * Obtém o ID da forma.
+     *
+     * @return int
+     */
+    public function getForma(): int
+    {
+        return $this->forma;
+    }
+
+    /**
+     * Define o ID da forma.
+     *
+     * @param int $forma
+     * @return self
+     */
+    public function setForma(int $forma): self
+    {
+        $this->grupo = $forma;
         return $this;
     }
 
