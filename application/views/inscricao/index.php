@@ -21,7 +21,7 @@
 	<main class="container">
 		<div class="alert alert-primary" role="alert">
           <?php echo $grp['grp_encontros'].' encontros  entre '.date('d/m/Y',strtotime($grp['grp_dataInicio'])).' e '.date('d/m/Y',strtotime($grp['grp_dataFim']))?>. <?php echo $grp['grp_diaSemana'].', das '.$grp['grp_horaInicio'].' às '.$grp['grp_horaFim']?>.
-          <?php echo $grp['grp_descricao']!=''?'<br/>'.$grp['grp_descricao']:''?>
+          <?php echo $grp['grp_descricao']!=''?'<br/>'.nl2br($grp['grp_descricao']):''?>
         </div>
 	<?php echo $conteudo?>
 	</main>
