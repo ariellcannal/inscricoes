@@ -110,7 +110,7 @@ if ($this->get_var('custom_head') != false) {
 </div>
 <div class="row mb-3">
 	<div class="col-md-6 form-group">
-        <?php echo $this->open_label_tag('inscricoes.fop','label').$this->fields_output['inscricoes.fop']['label']?> (<small><?php echo $this->get_Var('aviso_valor')?></small>) <?php echo $this->close_tag('label')?>
+        <?php echo $this->open_label_tag('inscricoes.fop','label').$this->fields_output['inscricoes.fop']['label'].$this->close_tag('label')?>
 		<?php echo $this->fields_output['inscricoes.fop']['field']?>
 	</div>
 	<div class="mesmo_cartao col-md-6 form-group" style="display: none;">

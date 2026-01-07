@@ -30,7 +30,6 @@ class Grupos extends SYS_Controller
         $xcrud->label('grp_descricao', 'Descrição Curta');
         $xcrud->label('grp_descricaoDetalhes', 'Descrição Detalhada');
         $xcrud->label('grp_coordenadores', 'Coordenadores');
-        $xcrud->label('grp_valor', 'Valor');
         $xcrud->label('grp_imagem', 'Imagem');
         $xcrud->label('grp_inscricoesAbertas', 'Inscrições Abertas');
         $xcrud->label('grp_nomePublico', 'Nome Público');
@@ -41,7 +40,6 @@ class Grupos extends SYS_Controller
         $xcrud->label('grp_diaSemana', 'Dias da Semana');
         $xcrud->label('grp_horaInicio', 'Hora Início');
         $xcrud->label('grp_horaFim', 'Hora Fim');
-        $xcrud->label('grp_valorDescricao', 'Descrição do Valor');
         $xcrud->label('grp_processoSeletivo', 'Processo Seletivo?');
         $xcrud->label('grp_linkWhats', 'Link do Grupo no WhatsApp');
         $xcrud->label('grp_idFaturaCartao', 'Identificação na Fatura');
@@ -53,8 +51,8 @@ class Grupos extends SYS_Controller
         $xcrud->label('grp_pixel', 'Meta Pixel');
         $xcrud->label('grp_analytics', 'Google Analytics');
 
-        $xcrud->columns('grp_id,grp_nome,grp_valor,grp_maximoInscricoes,grp_encontros,grp_dataInicio,grp_dataFim,grp_diaSemana,grp_horaInicio,grp_horaFim,grp_inscricoesAbertas,grp_exibeSite,grp_operadora,grp_ativo');
-        $xcrud->fields('grp_imagem,grp_nome,grp_nomePublico,grp_slug,grp_dataAulaAberta,grp_dataInicio,grp_dataFim,grp_diaSemana,grp_horaInicio,grp_horaFim,grp_maximoInscricoes,grp_exibeSite,grp_repasseAtivado,grp_ativo,grp_inscricoesAbertas,grp_processoSeletivo,grp_drtObrigatorio,grp_encontros,grp_valor,grp_valorDescricao,grp_idFaturaCartao,grp_coordenadores,grp_descricao,grp_descricaoDetalhes,grp_linkWhats,grp_operadora,grp_pixel,grp_analytics', false, 'Dados Principais');
+        $xcrud->columns('grp_id,grp_nome,grp_maximoInscricoes,grp_encontros,grp_dataInicio,grp_dataFim,grp_diaSemana,grp_horaInicio,grp_horaFim,grp_inscricoesAbertas,grp_exibeSite,grp_operadora,grp_ativo');
+        $xcrud->fields('grp_imagem,grp_nome,grp_nomePublico,grp_slug,grp_dataAulaAberta,grp_dataInicio,grp_dataFim,grp_diaSemana,grp_horaInicio,grp_horaFim,grp_maximoInscricoes,grp_exibeSite,grp_repasseAtivado,grp_ativo,grp_inscricoesAbertas,grp_processoSeletivo,grp_drtObrigatorio,grp_encontros,grp_idFaturaCartao,grp_coordenadores,grp_descricao,grp_descricaoDetalhes,grp_linkWhats,grp_operadora,grp_pixel,grp_analytics', false, 'Dados Principais');
 
         $semana[1] = 'Segundas';
         $semana[2] = 'Terças';
@@ -67,11 +65,6 @@ class Grupos extends SYS_Controller
 
         $xcrud->change_type('grp_linkWhats', 'text');
 
-        $xcrud->change_type('grp_valor', 'price', null, array(
-            'prefix' => 'R$ ',
-            'separator' => '.',
-            'point' => ','
-        ));
         $xcrud->change_type('grp_imagem', 'image', '', array(
             'width' => 1600,
             'height' => 1200,
@@ -108,7 +101,7 @@ class Grupos extends SYS_Controller
         $xcrud->duplicate_button(true);
 
         $xcrud->order_by('grp_nome', 'ASC');
-        $xcrud->no_editor('grp_valorDescricao,grp_descricao,grp_descricaoDetalhes');
+        $xcrud->no_editor('grp_descricao,grp_descricaoDetalhes');
 
         $dist = $xcrud->nested_table('Distribuição de Repasse do Grupo', 'grp_id', 'grupos_distribuicao', 'dst_grupo');
         $dist->table_name('Distribuição de Repasse');

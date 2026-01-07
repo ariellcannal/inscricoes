@@ -467,8 +467,6 @@ class Inscricoes extends SYS_Controller
             "novo" => 'Inserir dados do cartão'
         ]);
 
-        $xcrud->set_var('aviso_valor', $this->vars['grp']['grp_valorDescricao']);
-
         $xcrud->join('ins_aluno', 'alunos', 'alu_id', 'a', true);
 
         $xcrud->validation_required('a.alu_nascimento', 1);
