@@ -87,7 +87,7 @@ class SYS_Exceptions extends CI_Exceptions
         }
 
         if (ENVIRONMENT === 'production') {
-            $this->sendExceptionMail($data);
+            //$this->sendExceptionMail($data);
         }
     }
 

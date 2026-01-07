@@ -40,10 +40,11 @@ class Deploy extends SYS_Controller
 
     public function index(): void
     {
-        $this->rootPath = ROOTPATH;
+        $this->rootPath = realpath(APPPATH . '../') . DIRECTORY_SEPARATOR;
         $this->envPath = $this->rootPath . '/.env';
         $this->logPath = $this->rootPath . '/writable/logs/deploy.log';
-        service('log');
+        //CI 4
+        //service('log');
         $this->handle();
     }
 
