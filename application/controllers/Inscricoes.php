@@ -301,8 +301,10 @@ class Inscricoes extends SYS_Controller
     /**
      * Exibe formulário de inscrição.
      *
-     * @param string|null $grp_id_slug Slug ou ID do grupo.
-     * @param int|null    $ins_id      ID da inscrição.
+     * @param string|null $grp_id_slug
+     *            Slug ou ID do grupo.
+     * @param int|null $ins_id
+     *            ID da inscrição.
      * @return void
      */
     public function inscricao(?string $grp_id_slug = null, ?int $ins_id = null): void
@@ -311,7 +313,7 @@ class Inscricoes extends SYS_Controller
         $this->assets->js('../../assets/plugins/card/jquery.card.js');
         $this->assets->js('inscricoes_aluno.js');
         $this->assets->inline('recaptcha', config_item('recaptcha_key'));
-        
+
         $this->load->model('grupos_model');
         $this->load->model('alunos_model');
         $this->load->model('operadoras_model');
@@ -332,7 +334,7 @@ class Inscricoes extends SYS_Controller
 
         $grp_id_slug = urlencode(urldecode($grp_id_slug));
         $this->vars['grp'] = $this->grupos_model->getBySlugOrID($grp_id_slug);
-        
+
         $semana[0] = 'Domingos';
         $semana[1] = 'Segundas';
         $semana[2] = 'Terças';
@@ -344,16 +346,14 @@ class Inscricoes extends SYS_Controller
         foreach ($this->vars['grp']['grp_diaSemana'] as $dia) {
             $grp_diaSemana[] = $semana[$dia];
         }
-        if(count($grp_diaSemana) >= 2){
+        if (count($grp_diaSemana) >= 2) {
             $ultimo = array_pop($grp_diaSemana);
-            $this->vars['grp']['grp_diaSemana'] = implode(', ', $grp_diaSemana). ' e ' . $ultimo;;
-        }
-        else{
+            $this->vars['grp']['grp_diaSemana'] = implode(', ', $grp_diaSemana) . ' e ' . $ultimo;
+            ;
+        } else {
             $this->vars['grp']['grp_diaSemana'] = implode(' e ', $grp_diaSemana);
         }
-        
-        
-        
+
         if (! $this->vars['grp']) {
             set_status_header(404, lang('error_ultimas_vagas_tente_novamente'));
             return;
@@ -409,9 +409,7 @@ class Inscricoes extends SYS_Controller
                 }
             }
             if ($exibe) {
-                for ($i = 1; $i <= $r['gfp_parcelas']; $i ++) {
-                    $formas_temp[$i][$r['gfp_id'] . '_' . $i . '_' . $r['gfp_aceitaCartao'] . '_' . ($r['gfp_valorTotal'] / $i)] = $i . ' parcela' . (($i > 1) ? 's' : '') . ' de R$ ' . number_format($r['gfp_valorTotal'] / $i, 2, ',', '.') . ' ' . ($r['gfp_aceitaCartao'] ? "no cartão de crédito" : "no PIX") . ($r['gfp_comentario'] != "" ? ' (' . $r['gfp_comentario'] . ')' : '');
-                }
+                $formas_temp[$r['gfp_parcelas']][$r['gfp_id'] . '_' . $r['gfp_parcelas'] . '_' . $r['gfp_aceitaCartao'] . '_' . ($r['gfp_valorTotal'] / $r['gfp_parcelas'])] = ($r['gfp_comentario'] != "" ? $r['gfp_comentario'] . ':' : '') . $r['gfp_parcelas'] . ' parcela' . (($r['gfp_parcelas'] > 1) ? 's' : '') . ' de R$ ' . number_format($r['gfp_valorTotal'] / $r['gfp_parcelas'], 2, ',', '.') . ' ' . ($r['gfp_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
             }
             if (! empty($formas_temp)) {
                 ksort($formas_temp);
@@ -599,11 +597,11 @@ class Inscricoes extends SYS_Controller
             'width' => 200,
             'height' => 200,
             'crop' => true,
-            'path' => $_SERVER['DOCUMENT_ROOT'] .DIR_IMAGEM_ALUNOS
+            'path' => $_SERVER['DOCUMENT_ROOT'] . DIR_IMAGEM_ALUNOS
         ));
         $xcrud->change_type('a.alu_cv', 'file', '', array(
             'not_rename' => true,
-            'path' => $_SERVER['DOCUMENT_ROOT'] .DIR_IMAGEM_ALUNOS
+            'path' => $_SERVER['DOCUMENT_ROOT'] . DIR_IMAGEM_ALUNOS
         ));
 
         if (ENVIRONMENT == "development" || $this->session->userdata('usr_id')) {
