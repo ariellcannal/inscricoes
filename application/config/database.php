@@ -70,19 +70,19 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * | The $query_builder variables lets you determine whether or not to load
  * | the query builder class.
  */
-$active_group = ENVIRONMENT;
+$active_group = 'localhost';
 $query_builder = TRUE;
 
-$db['development'] = array(
+$db['localhost'] = array(
     'dsn' => '',
-    'hostname' => getenv('db.dev.hostname'),
-    'username' => getenv('db.dev.username'),
-    'password' => getenv('db.dev.password'),
-    'database' => getenv('db.dev.database'),
+    'hostname' => getenv('db.hostname'),
+    'username' => getenv('db.username'),
+    'password' => getenv('db.password'),
+    'database' => getenv('db.database'),
     'dbdriver' => 'mysqli',
     'dbprefix' => '',
     'pconnect' => FALSE,
-    'db_debug' => true,
+    'db_debug' => ENVIRONMENT == 'development'?true:false,
     'cache_on' => FALSE,
     'cachedir' => '',
     'char_set' => 'utf8',
@@ -94,15 +94,6 @@ $db['development'] = array(
     'failover' => array(),
     'save_queries' => TRUE
 );
-
-$db['production'] = $db['development'];
-$db['production'] = array_merge($db['production'], array(
-    'hostname' => getenv('db.prd.hostname'),
-    'username' => getenv('db.prd.username'),
-    'password' => getenv('db.prd.password'),
-    'database' => getenv('db.prd.database'),
-    'db_debug' => false
-));
 
 define('APP_DBHOST', $db[$active_group]['hostname']);
 define('APP_DBUSER', $db[$active_group]['username']);
