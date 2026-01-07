@@ -409,7 +409,10 @@ class Inscricoes extends SYS_Controller
                 }
             }
             if ($exibe) {
-                $formas_temp[$r['gfp_parcelas']][$r['gfp_id'] . '_' . $r['gfp_parcelas'] . '_' . $r['gfp_aceitaCartao'] . '_' . ($r['gfp_valorTotal'] / $r['gfp_parcelas'])] = ($r['gfp_comentario'] != "" ? $r['gfp_comentario'] . ':' : '') . $r['gfp_parcelas'] . ' parcela' . (($r['gfp_parcelas'] > 1) ? 's' : '') . ' de R$ ' . number_format($r['gfp_valorTotal'] / $r['gfp_parcelas'], 2, ',', '.') . ' ' . ($r['gfp_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
+                //for ($i = 1; $i <= $r['gfp_parcelas']; $i ++) {
+                    $i = $r['gfp_parcelas'];
+                    $formas_temp[$i][$r['gfp_id'] . '_' . $i . '_' . $r['gfp_aceitaCartao'] . '_' . ($r['gfp_valorTotal'] / $i)] = ($r['gfp_comentario'] != "" ? $r['gfp_comentario'] . ':' : '') . $i . ' parcela' . (($i > 1) ? 's' : '') . ' de R$ ' . number_format($r['gfp_valorTotal'] / $i, 2, ',', '.') . ' ' . ($r['gfp_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
+                //}
             }
             if (! empty($formas_temp)) {
                 ksort($formas_temp);

@@ -27,8 +27,8 @@ class Grupos extends SYS_Controller
         $xcrud->label('grp_dataInicio', 'Início');
         $xcrud->label('grp_dataFim', 'Fim');
         $xcrud->label('grp_encontros', 'Qtd. Encontros');
-        $xcrud->label('grp_descricao', 'Descrição');
-        $xcrud->label('grp_descricaoDetalhes', 'Detalhes');
+        $xcrud->label('grp_descricao', 'Descrição Curta');
+        $xcrud->label('grp_descricaoDetalhes', 'Descrição Detalhada');
         $xcrud->label('grp_coordenadores', 'Coordenadores');
         $xcrud->label('grp_valor', 'Valor');
         $xcrud->label('grp_imagem', 'Imagem');
