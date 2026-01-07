@@ -18,7 +18,7 @@ class Grupos extends SYS_Controller
         $xcrud->table('grupos');
         $xcrud->table_name('Grupos de Estudos');
 
-        $xcrud->set_var('after_task', 'list');
+        $xcrud->set_var('after_task', 'edit');
         $xcrud->set_var('replace_title', '{grp_nome}');
 
         $xcrud->label('grp_id', 'ID');

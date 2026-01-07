@@ -344,7 +344,15 @@ class Inscricoes extends SYS_Controller
         foreach ($this->vars['grp']['grp_diaSemana'] as $dia) {
             $grp_diaSemana[] = $semana[$dia];
         }
-        $this->vars['grp']['grp_diaSemana'] = implode(' e ', $grp_diaSemana);
+        if(count($grp_diaSemana) >= 2){
+            $ultimo = array_pop($grp_diaSemana);
+            $this->vars['grp']['grp_diaSemana'] = implode(', ', $grp_diaSemana). ' e ' . $ultimo;;
+        }
+        else{
+            $this->vars['grp']['grp_diaSemana'] = implode(' e ', $grp_diaSemana);
+        }
+        
+        
         
         if (! $this->vars['grp']) {
             set_status_header(404, lang('error_ultimas_vagas_tente_novamente'));
