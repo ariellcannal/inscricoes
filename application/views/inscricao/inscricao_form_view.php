@@ -1,10 +1,11 @@
 <?php
+global $processoSeletivo, $capture, $transacao;
+
 if ($this->get_var('custom_head') != false) {
     require (XCRUD_PATH . '/' . Xcrud_config::$themes_path . $this->get_var('custom_head'));
 }
-?>
-<?php if (ENVIRONMENT === 'production' && ! empty($grp['grp_pixel'])) :
-global $transacao;
+
+if (ENVIRONMENT === 'production' && ! empty($grp['grp_pixel'])) :
 if ($transacao instanceof Transacao) {
     $total = (float)$transacao->getValorBruto();
 }
@@ -33,7 +34,6 @@ $produtos = [
 <?php
 endif;
 
-global $processoSeletivo, $capture, $transacao;
 if ($processoSeletivo && ! $capture) {
     ?>
 <div class="alert alert-success" role="alert">A sua inscrição foi enviada para análise. Você receberá um e-mail informando o resultado do processo seletivo.</div>
