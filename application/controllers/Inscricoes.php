@@ -335,6 +335,18 @@ class Inscricoes extends SYS_Controller
         $grp_id_slug = urlencode(urldecode($grp_id_slug));
         $this->vars['grp'] = $this->grupos_model->getBySlugOrID($grp_id_slug);
 
+        if (! $this->vars['grp']) {
+            set_status_header(404, lang('error_ultimas_vagas_tente_novamente'));
+            return;
+        } elseif (! $ins_id && ($this->vars['grp']['grp_ativo'] != '1' || $this->vars['grp']['grp_inscricoesAbertas'] != '1')) {
+            set_status_header(401, lang('error_inscricoes_encerradas'));
+            return;
+        }
+
+        if (ENVIRONMENT === 'production' && $this->vars['grp']['grp_pixel']) {
+            $this->assets->inline('pixel', $this->vars['grp']['grp_pixel']);
+        }
+
         $semana[0] = 'Domingos';
         $semana[1] = 'Segundas';
         $semana[2] = 'Terças';
@@ -352,14 +364,6 @@ class Inscricoes extends SYS_Controller
             ;
         } else {
             $this->vars['grp']['grp_diaSemana'] = implode(' e ', $grp_diaSemana);
-        }
-
-        if (! $this->vars['grp']) {
-            set_status_header(404, lang('error_ultimas_vagas_tente_novamente'));
-            return;
-        } elseif (! $ins_id && ($this->vars['grp']['grp_ativo'] != '1' || $this->vars['grp']['grp_inscricoesAbertas'] != '1')) {
-            set_status_header(401, lang('error_inscricoes_encerradas'));
-            return;
         }
 
         if (! $ins_id && $this->vars['grp']['grp_maximoInscricoes'] > 0 && $this->vars['grp']['grp_maximoInscricoes'] <= count($this->grupos_model->getAlunosInscritos($this->vars['grp']['grp_id']))) {
@@ -409,10 +413,10 @@ class Inscricoes extends SYS_Controller
                 }
             }
             if ($exibe) {
-                //for ($i = 1; $i <= $r['gfp_parcelas']; $i ++) {
-                    $i = $r['gfp_parcelas'];
-                    $formas_temp[$i][$r['gfp_id'] . '_' . $i . '_' . $r['gfp_aceitaCartao'] . '_' . ($r['gfp_valorTotal'] / $i)] = ($r['gfp_comentario'] != "" ? $r['gfp_comentario'] . ': ' : '') . $i . ' parcela' . (($i > 1) ? 's' : '') . ' de R$ ' . number_format($r['gfp_valorTotal'] / $i, 2, ',', '.') . ' ' . ($r['gfp_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
-                //}
+                // for ($i = 1; $i <= $r['gfp_parcelas']; $i ++) {
+                $i = $r['gfp_parcelas'];
+                $formas_temp[$i][$r['gfp_id'] . '_' . $i . '_' . $r['gfp_aceitaCartao'] . '_' . ($r['gfp_valorTotal'] / $i)] = ($r['gfp_comentario'] != "" ? $r['gfp_comentario'] . ': ' : '') . $i . ' parcela' . (($i > 1) ? 's' : '') . ' de R$ ' . number_format($r['gfp_valorTotal'] / $i, 2, ',', '.') . ' ' . ($r['gfp_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
+                // }
             }
             if (! empty($formas_temp)) {
                 ksort($formas_temp);

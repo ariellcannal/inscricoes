@@ -3,19 +3,39 @@ if ($this->get_var('custom_head') != false) {
     require (XCRUD_PATH . '/' . Xcrud_config::$themes_path . $this->get_var('custom_head'));
 }
 ?>
-<?php if (ENVIRONMENT === 'production' && ! empty($grp['grp_pixel'])) :?>
+<?php if (ENVIRONMENT === 'production' && ! empty($grp['grp_pixel'])) :
+global $transacao;
+if ($transacao instanceof Transacao) {
+    $total = (float)$transacao->getValorBruto();
+}
+else{
+    $total = 0.0;
+}
+$produtos = [
+    ['id'=>$grp['grp_id'],'quantity'=>1]
+];
+?>
 <script>
-  fbq('track', 'Purchase');
+  fbq('track', 'Purchase', {
+    value: <?php echo number_format($total, 2, '.', ''); ?>,
+    currency: 'BRL',
+    contents: <?php echo json_encode($produtos); ?>,
+    content_type: 'product'
+  });
 </script>
+
 <noscript>
-	<img height="1" width="1" style="display: none" src="https://www.facebook.com/tr?id=<?php echo $grp['grp_pixel']?>noscript=1" />
+    <img height="1" width="1" style="display:none"
+         src="https://www.facebook.com/tr?id=<?php echo $grp['grp_pixel']; ?>&ev=Purchase&cd[value]=<?php echo number_format($total, 2, '.', ''); ?>&cd[currency]=BRL&cd[content_type]=product&cd[contents]=<?php echo urlencode(json_encode($produtos)); ?>&noscript=1" />
 </noscript>
+
 <!-- End Meta Pixel Code -->
 <?php
 endif;
 
 global $processoSeletivo, $capture, $transacao;
-if ($processoSeletivo && ! $capture) {?>
+if ($processoSeletivo && ! $capture) {
+    ?>
 <div class="alert alert-success" role="alert">A sua inscrição foi enviada para análise. Você receberá um e-mail informando o resultado do processo seletivo.</div>
 <?php
 } else if ($transacao->getTipo() == 'pix') {
