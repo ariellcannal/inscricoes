@@ -43,8 +43,8 @@ class Deploy extends SYS_Controller
         $this->rootPath = realpath(APPPATH . '../') . DIRECTORY_SEPARATOR;
         $this->envPath = $this->rootPath . '/.env';
         $this->logPath = $this->rootPath . '/writable/logs/deploy.log';
-        //CI 4
-        //service('log');
+        // CI 4
+        // service('log');
         $this->handle();
     }
 
@@ -158,29 +158,39 @@ class Deploy extends SYS_Controller
             $this->runCommand('git status --short --branch', $repoDir);
 
             /*
-             *
-             *
              * --------------- COMPOSER CONFIG ---------------
              */
 
-            // Caminho do PHP CLI (ajuste se necessário ou use .env)
-            $phpBinary = getenv('deploy.php_binary') ?: '/usr/local/bin/php';
+            if (ENVIRONMENT === 'development') {
+                // Caminhos para WAMP (Ajuste a versão do PHP conforme sua pasta)
+                // Geralmente: C:\wamp64\bin\php\php8.x.x\php.exe
+                $phpBinary = 'php'; // Se estiver no PATH do Windows, basta 'php'
 
-            // Caminho do binário/script do Composer (ajuste conforme seu servidor)
-            $composerBin = getenv('deploy.composer_binary') ?: '/usr/local/bin/composer';
+                // No Windows, o composer geralmente é um arquivo .phar ou um .bat no PATH
+                $composerBin = 'composer';
 
-            $composerCmd = escapeshellarg($phpBinary) . ' ' . escapeshellarg($composerBin);
+                // Se o comando 'composer' não funcionar direto, aponte para o .phar:
+                // $composerBin = 'C:\ProgramData\ComposerSetup\bin\composer.phar';
 
-            $this->logDeploy('Iniciando composer update');
+                $composerCmd = $composerBin; // No Windows/Composer Setup, o comando já chama o PHP
+            } else {
+                // Caminhos originais para o Servidor WHM/Linux
+                $phpBinary = getenv('deploy.php_binary') ?: '/usr/local/bin/php';
+                $composerBin = getenv('deploy.composer_binary') ?: '/usr/local/bin/composer';
+                $composerCmd = escapeshellarg($phpBinary) . ' ' . escapeshellarg($composerBin);
+            }
 
-            // clear-cache não é crítico, então permitimos falha sem estourar exceção
+            $this->logDeploy('Iniciando composer update no ambiente: ' . ENVIRONMENT);
+
+            // No Windows, o clear-cache pode exigir permissões de admin, por isso o true (não crítico)
             $this->runCommand($composerCmd . ' clear-cache', $repoDir, true);
 
-            // validação do composer.json
-            $this->runCommand($composerCmd . ' validate --no-check-lock --no-check-publish', $repoDir);
+            // Validação
+            $this->runCommand($composerCmd . ' validate --no-check-lock', $repoDir);
 
-            // comando principal de update
-            $this->runCommand($composerCmd . ' update --no-interaction --prefer-dist --no-dev --optimize-autoloader --no-progress', $repoDir);
+            // Update - Remova o --no-dev se quiser testar ferramentas de debug no WAMP
+            $devFlag = (ENVIRONMENT === 'development') ? '' : '--no-dev';
+            $this->runCommand($composerCmd . " update --no-interaction --prefer-dist $devFlag --optimize-autoloader", $repoDir);
 
             $this->logDeploy('Deploy finalizado com sucesso');
             http_response_code(200);
