@@ -161,24 +161,9 @@ class Deploy extends SYS_Controller
              * --------------- COMPOSER CONFIG ---------------
              */
 
-            if (ENVIRONMENT === 'development') {
-                // Caminhos para WAMP (Ajuste a versão do PHP conforme sua pasta)
-                // Geralmente: C:\wamp64\bin\php\php8.x.x\php.exe
-                $phpBinary = 'php'; // Se estiver no PATH do Windows, basta 'php'
-
-                // No Windows, o composer geralmente é um arquivo .phar ou um .bat no PATH
-                $composerBin = 'composer';
-
-                // Se o comando 'composer' não funcionar direto, aponte para o .phar:
-                // $composerBin = 'C:\ProgramData\ComposerSetup\bin\composer.phar';
-
-                $composerCmd = $composerBin; // No Windows/Composer Setup, o comando já chama o PHP
-            } else {
-                // Caminhos originais para o Servidor WHM/Linux
-                $phpBinary = getenv('deploy.php_binary') ?: '/usr/local/bin/php';
-                $composerBin = getenv('deploy.composer_binary') ?: '/usr/local/bin/composer';
-                $composerCmd = escapeshellarg($phpBinary) . ' ' . escapeshellarg($composerBin);
-            }
+            $phpBinary = getenv('deploy.php_binary') ?: '/usr/local/bin/php';
+            $composerBin = getenv('deploy.composer_binary') ?: '/usr/local/bin/composer';
+            $composerCmd = escapeshellarg($phpBinary) . ' ' . escapeshellarg($composerBin);
 
             $this->logDeploy('Iniciando composer update no ambiente: ' . ENVIRONMENT);
 
