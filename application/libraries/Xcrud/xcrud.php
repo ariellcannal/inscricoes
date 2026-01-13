@@ -7448,6 +7448,7 @@ class Xcrud
         }
         $out .= $this->close_tag($tag);
         unset($options);
+        http_response_code(200);
         return $out;
     }
 
