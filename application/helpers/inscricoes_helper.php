@@ -338,8 +338,8 @@ if (! function_exists('whatsAppMsg')) {
         }
         $ins['alu_celular'] = preg_replace('/\D+/', '', $ins['alu_celular']);
 
-        $url = "https://web.whatsapp.com/send?phone=55" . $ins['alu_celular'] . "&text=" . rawurlencode($msg);
-        // $url = "whatsapp://send?phone=55" . $ins['alu_celular'] . "&text=" . rawurlencode($msg);
+        //$url = "https://web.whatsapp.com/send?phone=55" . $ins['alu_celular'] . "&text=" . rawurlencode($msg);
+        $url = "whatsapp://send?phone=55" . $ins['alu_celular'] . "&text=" . rawurlencode($msg);
         // $xcrud->set_notify($msg, 'error', true);
         $out = '<script type="text/javascript">';
         $out .= 'shareButton("' . $ins['grp_nomePublico'] . '", "' . $msg . '", "' . $url . '")';
