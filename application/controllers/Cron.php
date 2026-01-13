@@ -23,6 +23,13 @@ class Cron extends SYS_Controller
         if (! is_cli() && ENVIRONMENT != 'development') {
             show_404();
         }
+
+        // Impede que o script consuma toda a RAM do servidor
+        ini_set('memory_limit', '256M');
+
+        // Mata o script se ele demorar mais que 4 minutos, liberando o servidor
+        set_time_limit(240);
+
         $this->logger = new Logger('cron', [
             new StreamHandler(APPPATH . 'logs/cron/' . date('Y-m-d') . '.log', Level::Debug)
         ]);
@@ -42,11 +49,8 @@ class Cron extends SYS_Controller
 
         // Verifica se já está em execução
         if (file_exists($lockFile)) {
-            $lastModified = filemtime($lockFile);
-            if ((time() - $lastModified) < 600) { // menos de 10 minutos
-                $this->logger->error($name . ' já está em execução.');
-                return;
-            }
+            $this->logger->error($name . ' já está em execução.');
+            return;
         }
         // Cria lock
         file_put_contents($lockFile, time());
@@ -74,10 +78,7 @@ class Cron extends SYS_Controller
         $name = 'cincoMinutos';
         $this->setLogFile($name . '-' . date('Y-m-d'));
         $this->setLockFile($name);
-        try {
-            $this->_atualizaTransacoesVencidas();
-            $this->_atualizaTransacoesRecentes();
-        } catch (Exception $e) {
+        try {} catch (Exception $e) {
             $this->logger->error($name . ' - ' . $e->getMessage());
         }
         $this->unsetLockFile($name);
@@ -88,7 +89,10 @@ class Cron extends SYS_Controller
         $name = 'hora';
         $this->setLogFile($name . '-' . date('Y-m-d'));
         $this->setLockFile($name);
-        try {} catch (Exception $e) {
+        try {
+            $this->_atualizaTransacoesVencidas();
+            $this->_atualizaTransacoesRecentes();
+        } catch (Exception $e) {
             $this->logger->error($name . ' - ' . $e->getMessage());
         }
         $this->unsetLockFile($name);

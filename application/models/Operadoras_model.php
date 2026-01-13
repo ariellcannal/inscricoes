@@ -98,7 +98,7 @@ class Operadoras_model extends SYS_Model
     function getTransacoesRecentes(int $dias = null)
     {
         if ($dias) {
-            $this->db->where('otr_dataTransacao >=', date('Y-m-d H:i:s', strtotime('-' . $dias . 'days')));
+            $this->db->where('otr_dataTransacao >=', date('Y-m-d H:i:s', strtotime('-' . $dias . ' days')));
         }
         $r = $this->db->get('operadoras_transacoes');
         return $r->result_array();
