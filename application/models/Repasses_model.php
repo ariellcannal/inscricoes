@@ -151,6 +151,9 @@ class Repasses_model extends SYS_Model
 
     function getRepassesEmRetencao(bool $retornarTotal = false)
     {
+        if (! $this->retencaoRepasse) {
+            return null;
+        }
         if ($retornarTotal) {
             $this->db->select('SUM(rre_valor) as total');
         } else {
@@ -173,7 +176,9 @@ class Repasses_model extends SYS_Model
         $this->db->select('rre_id,rre_usuario,rre_valor');
         $this->db->join('recebiveis', 'rre_recebivel = rec_id');
         $this->db->where('rre_repasse', null);
-        $this->db->where('rec_dataTransacao <', date('Y-m-d', strtotime('- ' . $this->retencaoRepasse . ' days')) . ' 00:00:00');
+        if (! $this->retencaoRepasse) {
+            $this->db->where('rec_dataTransacao <', date('Y-m-d', strtotime('- ' . $this->retencaoRepasse . ' days')) . ' 00:00:00');
+        }
         // $query = $this->db->get_compiled_select();exit($query);
         $rre = $this->db->get('recebiveis_repasses')->result_array();
         foreach ($rre as $row) {
