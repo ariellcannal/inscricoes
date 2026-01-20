@@ -178,7 +178,7 @@ class Inscricoes extends SYS_Controller
         ]);
         
         $xcrud->relation('ins_grupo', 'grupos', 'grp_id', 'grp_nome', 'grp_ativo=1');
-        $xcrud->relation('ins_forma', 'grupos_formas', 'gfp_id', 'gfp_descricao', null, null, null, null, null, null, 'gfp_grupo', 'ins_grupo');
+        $xcrud->relation('ins_forma', 'grupos_formas', 'gfp_id', ['gfp_valorTotal','gfp_comentario'], null, null, null, ' ', null, null, 'gfp_grupo', 'ins_grupo');
         $xcrud->relation('ins_aluno', 'alunos', 'alu_id', 'alu_nomeArtistico');
         
         $xcrud->change_type('ins_valorTotalPago,ins_valorModulo,ins_valorDevido,ins_valorDesconto', 'price', null, array(
