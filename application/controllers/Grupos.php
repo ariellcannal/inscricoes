@@ -153,7 +153,7 @@ class Grupos extends SYS_Controller
 
         $gfp->set_var('after_task', 'list');
 
-        $gfp->columns('gfp_descricao,gfp_aceitaCartao,gfp_parcelas,gfp_ordem,gfp_publico,gfp_linkOculto,gfp_linkOcultoValidade');
+        $gfp->columns('gfp_comentario,gfp_descricao,gfp_aceitaCartao,gfp_parcelas,gfp_ordem,gfp_publico,gfp_linkOculto,gfp_linkOcultoValidade');
         $gfp->fields('gfp_parcelas,gfp_valorTotal,gfp_comentario,gfp_aceitaCartao,gfp_ordem,gfp_publico,gfp_linkOculto,gfp_linkOcultoValidade');
 
         $gfp->change_type('gfp_valorTotal', 'price', null, array(
