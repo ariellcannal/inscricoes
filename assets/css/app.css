@@ -36,7 +36,7 @@ body {
 }
 
 .form-horizontal .row>div {
-	overflow: auto;
+	/* overflow: auto; */
 	padding-top: calc(.375rem + var(--bs-border-width));
 	padding-bottom: calc(.375rem + var(--bs-border-width));
 }
