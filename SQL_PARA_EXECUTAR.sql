@@ -32,36 +32,11 @@ CREATE TABLE `grupos_taxas_adicionais` (
 SELECT 'Tabela grupos_taxas_adicionais criada com sucesso!' AS status;
 
 -- ============================================================
--- PASSO 2: Adicionar coluna em operadoras_transacoes
--- ============================================================
-
-ALTER TABLE `operadoras_transacoes` 
-ADD COLUMN `otr_taxaAdicional` int DEFAULT NULL AFTER `otr_inscricao`;
-
--- Adicionar índice
-ALTER TABLE `operadoras_transacoes`
-ADD KEY `otr_taxaAdicional` (`otr_taxaAdicional`);
-
--- Adicionar foreign key
-ALTER TABLE `operadoras_transacoes`
-ADD CONSTRAINT `fk_operadoras_transacoes_taxa` 
-FOREIGN KEY (`otr_taxaAdicional`) 
-REFERENCES `grupos_taxas_adicionais` (`gtx_id`) 
-ON DELETE SET NULL 
-ON UPDATE CASCADE;
-
--- Verificar se a coluna foi adicionada
-SELECT 'Coluna otr_taxaAdicional adicionada com sucesso!' AS status;
-
--- ============================================================
--- PASSO 3: Verificação final
+-- PASSO 2: Verificação final
 -- ============================================================
 
 -- Verificar estrutura da tabela grupos_taxas_adicionais
 DESCRIBE grupos_taxas_adicionais;
-
--- Verificar se a coluna foi adicionada em operadoras_transacoes
-SHOW COLUMNS FROM operadoras_transacoes LIKE 'otr_taxaAdicional';
 
 -- Verificar foreign keys
 SELECT 
@@ -74,8 +49,7 @@ FROM
     INFORMATION_SCHEMA.KEY_COLUMN_USAGE
 WHERE 
     TABLE_SCHEMA = DATABASE()
-    AND (CONSTRAINT_NAME = 'fk_grupos_taxas_adicionais_grupo' 
-         OR CONSTRAINT_NAME = 'fk_operadoras_transacoes_taxa');
+    AND CONSTRAINT_NAME = 'fk_grupos_taxas_adicionais_grupo';
 
 -- ============================================================
 -- EXEMPLO DE INSERÇÃO (OPCIONAL - APENAS PARA TESTE)

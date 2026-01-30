@@ -431,6 +431,79 @@ class Inscricoes extends SYS_Controller
             redirect('/inscricao/' . $this->vars['grp']['grp_slug'] . '?redirect=true', 301);
         }
         
+        // Processar taxas adicionais
+        $taxasAdicionais = [];
+        $taxasPrimeiraParcela = [];
+        $taxasPosteriores = [];
+        
+        foreach ($this->grupos_model->getTaxasAdicionais($this->vars['grp']['grp_id'], $_GET['utm_content']) as $taxa) {
+            $exibe = true;
+            if ($taxa['gtx_parcelas'] > 1) {
+                $taxa['gtx_aceitaCartao'] = 1;
+            }
+            
+            $gtx_valorTotal_original = $taxa['gtx_valorTotal'];
+            
+            if (!empty($ins['ins_valorDesconto'])) {
+                $taxa['gtx_valorTotal'] = $taxa['gtx_valorTotal'] - $ins['ins_valorDesconto'];
+            }
+            
+            if ($exibe) {
+                $taxaData = [
+                    'gtx_id' => $taxa['gtx_id'],
+                    'gtx_comentario' => $taxa['gtx_comentario'],
+                    'gtx_descricao' => $taxa['gtx_descricao'],
+                    'gtx_valorTotal' => $taxa['gtx_valorTotal'],
+                    'gtx_parcelas' => $taxa['gtx_parcelas'],
+                    'gtx_aceitaCartao' => $taxa['gtx_aceitaCartao'],
+                    'gtx_primeiraParcela' => $taxa['gtx_primeiraParcela']
+                ];
+                
+                $taxasAdicionais[] = $taxaData;
+                
+                if ($taxa['gtx_primeiraParcela'] == '1') {
+                    $taxasPrimeiraParcela[] = $taxaData;
+                } else {
+                    $taxasPosteriores[] = $taxaData;
+                }
+            }
+        }
+        
+        // Atualizar descrição das formas de pagamento para incluir taxas de primeira parcela
+        if (!empty($taxasPrimeiraParcela)) {
+            $valorTaxasPrimeira = 0;
+            $descricaoTaxas = [];
+            foreach ($taxasPrimeiraParcela as $taxa) {
+                $valorTaxasPrimeira += $taxa['gtx_valorTotal'];
+                $descricaoTaxas[] = $taxa['gtx_comentario'] ?: $taxa['gtx_descricao'];
+            }
+            
+            // Reprocessar formas adicionando o valor das taxas
+            $formas_com_taxas = [];
+            foreach ($formas as $key => $descricao) {
+                $partes = explode('_', $key);
+                if (count($partes) == 4) {
+                    $gfp_id = $partes[0];
+                    $parcelas = $partes[1];
+                    $aceitaCartao = $partes[2];
+                    $valorParcela = $partes[3];
+                    
+                    $valorTotalOriginal = $valorParcela * $parcelas;
+                    $valorTotalComTaxas = $valorTotalOriginal + $valorTaxasPrimeira;
+                    $novoValorParcela = $valorTotalComTaxas / $parcelas;
+                    
+                    $novoKey = $gfp_id . '_' . $parcelas . '_' . $aceitaCartao . '_' . $novoValorParcela . '_' . $valorTaxasPrimeira;
+                    
+                    $textoTaxas = ' + R$ ' . number_format($valorTaxasPrimeira, 2, ',', '.') . ' ref. ' . implode(', ', $descricaoTaxas);
+                    $formas_com_taxas[$novoKey] = str_replace(' parcela', ' parcela', $descricao) . $textoTaxas;
+                }
+            }
+            
+            if (!empty($formas_com_taxas)) {
+                $formas = $formas_com_taxas;
+            }
+        }
+        
         $mes = [];
         $ano = [];
         for ($i = 1; $i <= 12; $i ++) {
@@ -471,6 +544,31 @@ class Inscricoes extends SYS_Controller
             "novo" => 'Inserir dados do cartão'
         ]);
         
+        // Criar campos dinâmicos para cada taxa posterior
+        foreach ($taxasPosteriores as $idx => $taxa) {
+            $prefix = 'taxa_' . $taxa['gtx_id'];
+            
+            // Criar opções de pagamento para esta taxa
+            $formasTaxa = [];
+            for ($i = 1; $i <= $taxa['gtx_parcelas']; $i++) {
+                $key = $taxa['gtx_id'] . '_' . $i . '_' . $taxa['gtx_aceitaCartao'] . '_' . ($taxa['gtx_valorTotal'] / $i);
+                $formasTaxa[$key] = ($taxa['gtx_comentario'] != "" ? $taxa['gtx_comentario'] . ': ' : '') . 
+                                    $i . ' parcela' . (($i > 1) ? 's' : '') . ' de R$ ' . 
+                                    number_format($taxa['gtx_valorTotal'] / $i, 2, ',', '.') . ' ' . 
+                                    ($taxa['gtx_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
+            }
+            
+            // Criar campos para esta taxa
+            $xcrud->create_field($prefix . '_fop', 'select', null, $formasTaxa);
+            $xcrud->create_field($prefix . '_rec_cartao', 'text', null, ['inputmode' => 'numeric']);
+            $xcrud->create_field($prefix . '_rec_cartaoCodigo', 'text', null, ['inputmode' => 'numeric']);
+            $xcrud->create_field($prefix . '_rec_cartaoValidadeMes', 'select', date('m'), $mes);
+            $xcrud->create_field($prefix . '_rec_cartaoValidadeAno', 'select', date('Y'), $ano);
+            $xcrud->create_field($prefix . '_rec_cartaoNome', 'text');
+            $xcrud->create_field($prefix . '_rec_cartaoCPF', 'text');
+            $xcrud->create_field($prefix . '_alu_cartoes', 'select', "novo", ["novo" => 'Inserir dados do cartão', "mesmo" => 'Utilizar mesmo cartão']);
+        }
+        
         $xcrud->join('ins_aluno', 'alunos', 'alu_id', 'a', true);
         
         $xcrud->validation_required('a.alu_nascimento', 1);
@@ -503,6 +601,31 @@ class Inscricoes extends SYS_Controller
         $xcrud->label('fop', 'Forma de Pagamento');
         $xcrud->label('a.alu_foto', 'Foto');
         $xcrud->label('a.alu_cv', 'Currículo Artístico');
+        
+        // Labels e atributos para taxas posteriores
+        foreach ($taxasPosteriores as $idx => $taxa) {
+            $prefix = 'taxa_' . $taxa['gtx_id'];
+            
+            $xcrud->label($prefix . '_fop', 'Forma de Pagamento');
+            $xcrud->label($prefix . '_rec_cartao', 'Número do Cartão');
+            $xcrud->label($prefix . '_rec_cartaoCodigo', 'CVV');
+            $xcrud->label($prefix . '_rec_cartaoValidadeMes', 'Validade - Mês');
+            $xcrud->label($prefix . '_rec_cartaoValidadeAno', 'Validade - Ano');
+            $xcrud->label($prefix . '_rec_cartaoNome', 'Nome (Como Impresso no Cartão)');
+            $xcrud->label($prefix . '_rec_cartaoCPF', 'CPF do Titular');
+            $xcrud->label($prefix . '_alu_cartoes', 'Selecione um cartão');
+            
+            $xcrud->set_attr($prefix . '_fop', ['id' => $prefix . '_fop', 'class' => 'taxa-fop']);
+            $xcrud->set_attr($prefix . '_rec_cartao', ['id' => $prefix . '_rec_cartao', 'autocomplete' => 'cc-number']);
+            $xcrud->set_attr($prefix . '_rec_cartaoCodigo', ['id' => $prefix . '_rec_cartaoCodigo', 'autocomplete' => 'cc-csc']);
+            $xcrud->set_attr($prefix . '_rec_cartaoNome', ['id' => $prefix . '_rec_cartaoNome', 'autocomplete' => 'cc-name']);
+            $xcrud->set_attr($prefix . '_rec_cartaoCPF', ['id' => $prefix . '_rec_cartaoCPF']);
+            $xcrud->set_attr($prefix . '_alu_cartoes', ['id' => $prefix . '_alu_cartoes']);
+            $xcrud->set_attr($prefix . '_rec_cartaoValidadeMes', ['class' => 'not_select2 form-control', 'autocomplete' => 'cc-exp-month', 'id' => $prefix . '_rec_cartaoValidadeMes']);
+            $xcrud->set_attr($prefix . '_rec_cartaoValidadeAno', ['class' => 'not_select2 form-control', 'autocomplete' => 'cc-exp-year', 'id' => $prefix . '_rec_cartaoValidadeAno']);
+            
+            $xcrud->mask($prefix . '_rec_cartaoCPF', '000.000.000-00');
+        }
         
         $xcrud->fields('ins_id', true);
         
@@ -648,6 +771,11 @@ class Inscricoes extends SYS_Controller
         
         $xcrud->validation_required('a.alu_cpf,a.alu_celular,a.alu_endereco,a.alu_enderecoNumero,a.alu_enderecoBairro,a.alu_enderecoCidade,a.alu_enderecoEstado,a.alu_enderecoCep', 1);
         $xcrud->validation_pattern('alu_email', 'email');
+        
+        // Passar variáveis para a view
+        $xcrud->set_var('taxasAdicionais', json_encode($taxasAdicionais));
+        $xcrud->set_var('taxasPrimeiraParcela', json_encode($taxasPrimeiraParcela));
+        $xcrud->set_var('taxasPosteriores', json_encode($taxasPosteriores));
         
         if (! empty($ins_id)) {
             $xcrud->unset_edit(false);

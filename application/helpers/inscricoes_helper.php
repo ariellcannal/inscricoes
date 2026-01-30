@@ -133,6 +133,19 @@ if (! function_exists('BI_inscricao_aluno')) {
         $ins_tempData['fop'] = $postdata->get('fop');
         $fop = explode('_', $postdata->get('fop'));
         $postdata->set('ins_forma', $fop[0]);
+        
+        // Processar taxas adicionais
+        $taxasPostdata = [];
+        foreach ($postdata->to_array() as $k => $v) {
+            if (strpos($k, 'taxa_') === 0) {
+                $taxasPostdata[$k] = $v;
+            }
+        }
+        
+        if (!empty($taxasPostdata)) {
+            $ins_tempData['taxas'] = $taxasPostdata;
+        }
+        
         $postdata->set('ins_tempData', json_encode($ins_tempData));
     }
 }

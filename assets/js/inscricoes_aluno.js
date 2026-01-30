@@ -128,8 +128,23 @@ $(document).on("xcrudinit", function() {
 	if (current_task == "edit" || current_task == "create") {
 		$('.dados_cartao').hide();
 		$('.mesmo_cartao').hide();
-		$('#fop').change(checkFOP);
-		$('#alu_cartoes').change(selectCartao).css('width', '100%');
+	$('#fop').change(checkFOP);
+			$('#alu_cartoes').change(selectCartao).css('width', '100%');
+			
+			// Inicializar controles de taxas adicionais
+			$('.taxa-fop').each(function() {
+				var taxaId = $(this).attr('id').replace('_fop', '');
+				$(this).change(function() { checkTaxaFOP(taxaId); });
+				$('#' + taxaId + '_alu_cartoes').change(function() { selectTaxaCartao(taxaId); }).css('width', '100%');
+				
+				// Inicializar validade do cartão para taxa
+				$('#' + taxaId + '_rec_cartaoValidadeMes,#' + taxaId + '_rec_cartaoValidadeAno').change(function() {
+					var ano = $('#' + taxaId + '_rec_cartaoValidadeAno').val();
+					var mes = $('#' + taxaId + '_rec_cartaoValidadeMes').val();
+					var validade = mes + '/' + ano;
+					$('#' + taxaId + '_rec_cartaoValidade').val(validade);
+				});
+			});
 		$('input,select').change(function() {
 			$(this).removeClass('is-invalid');
 			$(this).closest('.form-group').removeClass('is-invalid');
@@ -176,6 +191,48 @@ function selectCartao() {
 		$('.dados_cartao').slideUp(100);
 		//$('#rec_cartaoValidadeMes').css('width', '100%');
 		//$('#rec_cartaoValidadeAno').css('width', '100%');
+	}
+}
+
+function checkTaxaFOP(taxaId) {
+	var fopValue = $('#' + taxaId + '_fop').val();
+	if (!fopValue) return;
+	
+	var tem_parcelamento = fopValue.split("_")[2];
+	var taxaIdNum = taxaId.replace('taxa_', '');
+	
+	if (tem_parcelamento == 1) {
+		$('.taxa-mesmo-cartao-' + taxaIdNum).show(100, function() { selectTaxaCartao(taxaId); });
+		if ($('#' + taxaId + '_alu_cartoes option').length == 2) { // novo e mesmo
+			$('#' + taxaId + '_alu_cartoes').trigger('change');
+		}
+	}
+	else {
+		$('.taxa-mesmo-cartao-' + taxaIdNum).hide(100);
+		$('.dados_cartao_' + taxaId).hide(100);
+	}
+}
+
+function selectTaxaCartao(taxaId) {
+	var fopValue = $('#' + taxaId + '_fop').val();
+	if (!fopValue || fopValue.split("_")[2] == "0") {
+		return;
+	}
+	
+	var cartaoValue = $('#' + taxaId + '_alu_cartoes').val();
+	
+	if (cartaoValue == undefined) {
+		$('#' + taxaId + '_alu_cartoes').val($('#' + taxaId + '_alu_cartoes option:eq(0)').val()).trigger('change');
+	}
+	else if (cartaoValue == "novo") {
+		$('.dados_cartao_' + taxaId).slideDown(100);
+	}
+	else if (cartaoValue == "mesmo") {
+		// Usar mesmo cartão do curso
+		$('.dados_cartao_' + taxaId).slideUp(100);
+	}
+	else {
+		$('.dados_cartao_' + taxaId).slideUp(100);
 	}
 }
 
