@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL - grupos_taxas_adicionais</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #252526;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #4ec9b0;
+            border-bottom: 2px solid #4ec9b0;
+            padding-bottom: 10px;
+        }
+        pre {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #3e3e42;
+        }
+        code {
+            color: #ce9178;
+        }
+        .keyword {
+            color: #569cd6;
+            font-weight: bold;
+        }
+        .type {
+            color: #4ec9b0;
+        }
+        .string {
+            color: #ce9178;
+        }
+        .comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SQL - Criação da Tabela grupos_taxas_adicionais</h1>
+        <pre><code><span class="comment">-- --------------------------------------------------------
+--
+-- Estrutura para tabela `grupos_taxas_adicionais`
+-- Baseada na estrutura de `grupos_formas` com prefixo gtx_
+--</span>
+
+<span class="keyword">CREATE TABLE</span> <span class="string">`grupos_taxas_adicionais`</span> (
+  <span class="string">`gtx_id`</span> <span class="type">int</span> <span class="keyword">NOT NULL AUTO_INCREMENT</span>,
+  <span class="string">`gtx_grupo`</span> <span class="type">int</span> <span class="keyword">NOT NULL</span>,
+  <span class="string">`gtx_parcelas`</span> <span class="type">int</span> <span class="keyword">NOT NULL</span>,
+  <span class="string">`gtx_valorTotal`</span> <span class="type">decimal(10,2)</span> <span class="keyword">NOT NULL</span>,
+  <span class="string">`gtx_ordem`</span> <span class="type">int</span> <span class="keyword">NOT NULL DEFAULT</span> <span class="string">'0'</span>,
+  <span class="string">`gtx_publico`</span> <span class="type">tinyint(1)</span> <span class="keyword">NOT NULL DEFAULT</span> <span class="string">'1'</span>,
+  <span class="string">`gtx_aceitaCartao`</span> <span class="type">tinyint(1)</span> <span class="keyword">NOT NULL</span>,
+  <span class="string">`gtx_linkOculto`</span> <span class="type">varchar(32)</span> <span class="keyword">CHARACTER SET</span> utf8mb4 <span class="keyword">COLLATE</span> utf8mb4_unicode_ci <span class="keyword">DEFAULT NULL</span>,
+  <span class="string">`gtx_linkOcultoValidade`</span> <span class="type">datetime</span> <span class="keyword">DEFAULT NULL</span>,
+  <span class="string">`gtx_comentario`</span> <span class="type">varchar(16)</span> <span class="keyword">CHARACTER SET</span> utf8mb4 <span class="keyword">COLLATE</span> utf8mb4_unicode_ci <span class="keyword">DEFAULT NULL</span>,
+  <span class="string">`gtx_descricao`</span> <span class="type">varchar(256)</span> <span class="keyword">CHARACTER SET</span> utf8mb4 <span class="keyword">COLLATE</span> utf8mb4_unicode_ci <span class="keyword">DEFAULT NULL</span>,
+  <span class="string">`gtx_primeiraParcela`</span> <span class="type">tinyint(1)</span> <span class="keyword">NOT NULL DEFAULT</span> <span class="string">'1'</span>,
+  <span class="keyword">PRIMARY KEY</span> (<span class="string">`gtx_id`</span>),
+  <span class="keyword">KEY</span> <span class="string">`gtx_grupo`</span> (<span class="string">`gtx_grupo`</span>),
+  <span class="keyword">CONSTRAINT</span> <span class="string">`fk_grupos_taxas_adicionais_grupo`</span> <span class="keyword">FOREIGN KEY</span> (<span class="string">`gtx_grupo`</span>) <span class="keyword">REFERENCES</span> <span class="string">`grupos`</span> (<span class="string">`grp_id`</span>) <span class="keyword">ON DELETE CASCADE ON UPDATE CASCADE</span>
+) <span class="keyword">ENGINE</span>=InnoDB <span class="keyword">DEFAULT CHARSET</span>=utf8mb4 <span class="keyword">COLLATE</span>=utf8mb4_unicode_ci;</code></pre>
+    </div>
+</body>
+</html>

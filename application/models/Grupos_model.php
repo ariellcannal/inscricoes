@@ -187,4 +187,41 @@ class Grupos_model extends SYS_Model
         $this->db->order_by('alu_nomeArtistico', 'ASC');
         return $this->db->get('inscricoes')->result_array();
     }
+
+    /**
+     * Obtém as taxas adicionais de um grupo
+     * @param int $grp_id ID do grupo
+     * @param string|null $linkOculto Link oculto para filtrar
+     * @param bool $publico Se deve filtrar apenas taxas públicas
+     * @return array Array com as taxas adicionais
+     */
+    function getTaxasAdicionais($grp_id, $linkOculto = null, $publico = true)
+    {
+        if (! empty($publico) && empty($linkOculto)) {
+            $this->db->where('gtx_publico', '1');
+        }
+        if (! empty($linkOculto)) {
+            $this->db->where('gtx_linkOculto', $linkOculto);
+            $this->db->where('(gtx_linkOcultoValidade IS NULL OR gtx_linkOcultoValidade > NOW())', null, false);
+        }
+        $this->db->order_by('gtx_ordem', 'ASC');
+        $this->db->order_by('gtx_parcelas', 'ASC');
+        $this->db->order_by('gtx_valorTotal', 'DESC');
+        $r = $this->db->get_where('grupos_taxas_adicionais', array(
+            'gtx_grupo' => $grp_id
+        ));
+        return $r->result_array();
+    }
+
+    /**
+     * Obtém uma taxa adicional específica
+     * @param int $gtx_id ID da taxa adicional
+     * @return array|null Dados da taxa adicional
+     */
+    function getTaxaAdicional($gtx_id)
+    {
+        return $this->db->get_where('grupos_taxas_adicionais', array(
+            'gtx_id' => $gtx_id
+        ))->row_array();
+    }
 }
