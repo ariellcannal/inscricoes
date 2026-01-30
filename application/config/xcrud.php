@@ -121,9 +121,9 @@ class Xcrud_config
     
     // date
     public static $date_first_day = 0; // 0 - Sunday, 1 - Monday etc. Uses in datepicker and search ranges
-    public static $moment_date_format = 'DD/MM/YYYY'; // moment() date format
+    public static $moment_date_format = 'dd/MM/yyyy'; // moment() date format
     public static $moment_time_format = 'HH:mm'; // moment() time format
-    public static $moment_year_format = 'YYYY'; // moment() time format
+    public static $moment_year_format = 'yyyy'; // moment() time format
     public static $php_date_format = 'd/m/Y'; // php date format
     public static $php_time_format = 'H:i'; // php time format
     public static $php_year_format = 'H'; // php time format

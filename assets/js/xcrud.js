@@ -332,95 +332,120 @@ var Xcrud = {
 		}
 		$(container).find('.xcrud-searchdata[data-fieldtype="' + fieldtype + '"]' + name_selector).show().addClass("xcrud-search-active");
 		if (fieldtype == 'date') {
-			Xcrud.init_datepicker_range(type, container);
+			Xcrud.init_datepicker_range(container);
 		}
 	},
-	init_datepicker_range: function(type, container) {
-		/*
-		 * https://github.com/Eonasdan/bootstrap-datetimepicker/
-		 */
-		if ($(container).find('.xcrud-datepicker-from').data("DateTimePicker") == undefined && $(container).find('.xcrud-datepicker-to').data("DateTimePicker") == undefined) {
-			from = $(container).find('.xcrud-datepicker-from').datetimepicker();
-			to = $(container).find('.xcrud-datepicker-to').datetimepicker();
-			switch (type) {
-				case 'time':
-					element.datetimepicker({
-						format: xcrud_config.moment_time_format,
-						useCurrent: false
-					});
-				case 'datetime':
-				case 'timestamp':
-					element.datetimepicker({
-						format: xcrud_config.moment_date_format + ' ' + xcrud_config.moment_time_format,
-						useCurrent: false
-					});
-				case 'date':
-					element.datetimepicker({
-						format: xcrud_config.moment_date_format,
-						useCurrent: false
-					});
-				case 'year':
-					element.datetimepicker({
-						viewMode: 'years',
-						format: xcrud_config.moment_year_format,
-						useCurrent: false
-					});
-				default:
-					Xcrud.link_datetime_fields(from, to);
-					break;
+	init_datepicker_range: function(container) {
+		// Busca qualquer elemento que defina um início ou um fim de período
+		$('[data-rangestart], [data-rangeend]', container).each(function() {
+			var $el = $(this);
+			var startName, endName;
+
+			// Se tem rangeend, o START é o próprio elemento. Se tem rangestart, o END é o próprio elemento.
+			if ($el.is('[data-rangeend]')) {
+				startName = $el.attr('name');
+				endName = $el.data('rangeend');
+			} else {
+				startName = $el.data('rangestart');
+				endName = $el.attr('name');
 			}
-		}
-	},
-	init_datepicker: function(container) {
-		/*
-		 * https://github.com/Eonasdan/bootstrap-datetimepicker/
-		 */
-		$(container).find(".xcrud-datepicker").each(function() {
-			if ($(this).data("DateTimePicker") == undefined) {
-				var element = $(this);
-				var format_id = $(this).data("type");
-				switch (format_id) {
-					case 'time':
-						element.datetimepicker({
-							format: xcrud_config.moment_time_format,
-							useCurrent: false
+
+			var $startEl = $('[name="' + startName + '"]');
+			var $endEl = $('[name="' + endName + '"]');
+
+			// Valida e evita duplicar vínculo
+			if ($startEl.length && $endEl.length && !$startEl.data('range-linked')) {
+
+				$startEl.on('change.td', function(e) {
+					var tdEnd = $endEl[0].td;
+					if (tdEnd) {
+						tdEnd.updateOptions({
+							restrictions: { minDate: e.detail.date || null }
 						});
-					case 'datetime':
-					case 'timestamp':
-						element.datetimepicker({
-							format: xcrud_config.moment_date_format + ' ' + xcrud_config.moment_time_format,
-							useCurrent: false
+					}
+				});
+
+				$endEl.on('change.td', function(e) {
+					var tdStart = $startEl[0].td;
+					if (tdStart) {
+						tdStart.updateOptions({
+							restrictions: { maxDate: e.detail.date || null }
 						});
-					case 'date':
-						element.datetimepicker({
-							format: xcrud_config.moment_date_format,
-							useCurrent: false
-						});
-					case 'year':
-						element.datetimepicker({
-							viewMode: 'years',
-							format: xcrud_config.moment_year_format,
-							useCurrent: false
-						});
-					default:
-						var range_start = element.data("rangestart");
-						var range_end = element.data("rangeend");
-						Xcrud.link_datetime_fields(range_start, range_end);
-						break;
-				}
+					}
+				});
+
+				$startEl.data('range-linked', true);
+				$endEl.data('range-linked', true);
 			}
 		});
 	},
-	link_datetime_fields: function(field_from, field_to) {
-		if (field_from != undefined && field_from.data("DateTimePicker") != undefined && field_to != undefined && field_to.data("DateTimePicker") != undefined) {
-			$(field_to).data("DateTimePicker").useCurrent(false)
+	init_datepicker: function(container) {
+		$(".xcrud-datepicker, .xcrud-datepicker-from, .xcrud-datepicker-to", container).each(function() {
+			const input = $(this);
 
-			$(field_from).on("dp.change", function(e) {
-				$(field_to).data("DateTimePicker").minDate(e.date);
-			});
-			$(field_to).on("dp.change", function(e) {
-				$(field_from).data("DateTimePicker").maxDate(e.date);
-			});
+			// 1. Verificação de instância existente
+			if (!input.length || this.td) return;
+
+			var format_id = input.data("type");
+
+			var config = {
+				display: {
+					components: {
+						calendar: true, date: true, month: true, year: true,
+						decades: true, clock: true, hours: true, minutes: true, seconds: false
+					},
+					icons: {
+						time: 'fas fa-clock', date: 'fas fa-calendar', up: 'fas fa-arrow-up',
+						down: 'fas fa-arrow-down', previous: 'fas fa-chevron-left',
+						next: 'fas fa-chevron-right', today: 'fas fa-calendar-check',
+						clear: 'fas fa-trash', close: 'fas fa-times'
+					},
+					buttons: { today: true, clear: true, close: true }
+				},
+				localization: {
+					locale: 'pt-BR',
+					format: xcrud_config.moment_date_format, // Deve ser 'DD/MM/YYYY'
+					dayViewHeaderFormat: { month: 'long', year: 'numeric' }
+				}
+			};
+			
+			switch (format_id) {
+				case 'time':
+					config.display.sideBySide = true;
+					config.display.components = {
+						clock: true, hours: true, minutes: true, seconds: false,
+						calendar: false, date: false, month: false, year: false, decades: false
+					};
+					config.localization.format = xcrud_config.moment_time_format;
+					break;
+				case 'datetime':
+				case 'timestamp':
+					config.display.sideBySide = true;
+					config.localization.format = xcrud_config.moment_date_format + ' ' + xcrud_config.moment_time_format;
+					break;
+				case 'date':
+					config.display.components = {
+						calendar: true, date: true, month: true, year: true,
+						decades: false, clock: false, hours: false, minutes: false, seconds: false
+					},
+						config.localization.format = xcrud_config.moment_date_format;
+					break;
+				case 'year':
+					config.display.components = { year: true, calendar: false, date: false, month: false, decades: false };
+					config.localization.format = xcrud_config.moment_year_format;
+					break;
+			}
+
+			try {
+				// 3. Inicialização usando o elemento DOM puro para evitar conflitos de objeto jQuery
+				new tempusDominus.TempusDominus(this, config);
+			} catch (e) {
+				console.warn("Falha ao inicializar picker:", e);
+			}
+		});
+
+		if (typeof this.init_datepicker_range === "function") {
+			this.init_datepicker_range(container);
 		}
 	},
 	init_texteditor: function(container) {
@@ -1425,6 +1450,7 @@ var Xcrud = {
 		var container = Xcrud.get_container(e);
 		$('select:not(.xcrud-columns-select):not(.xcrud-searchdata):not(.not_select2):not(.xcrud-columnsList-select)', container).each(function() {
 			var options = $.extend({
+				theme: 'bootstrap-5',
 				width: '100%'
 			}, $(this).data());
 			if ($(this).hasClass('select2-ajax')) {
@@ -1655,7 +1681,7 @@ $(document).on("xcrudinit", function() {
 		});
 		$(".xcrud-ajax").each(function() {
 			Xcrud.init_datepicker(this);
-			Xcrud.init_datepicker_range($(this).find('.xcrud-columns-select option:selected').data('type'), this);
+			Xcrud.init_datepicker_range(this);
 			Xcrud.depend_init(this);
 			Xcrud.map_init(this);
 			Xcrud.check_fixed_buttons();
@@ -1690,7 +1716,7 @@ $(document).on("xcrudbeforerequest", function(event, container) {
 $(document).on("xcrudafterrequest", function(event, container) {
 	Xcrud.init_datepicker(container);
 	Xcrud.init_texteditor(container);
-	Xcrud.init_datepicker_range($(container).find('.xcrud-columns-select option:selected').data('type'), container);
+	Xcrud.init_datepicker_range(container);
 	Xcrud.depend_init(container);
 	Xcrud.map_init(container);
 	Xcrud.check_fixed_buttons();
@@ -1714,7 +1740,7 @@ $(document).on("xcrudafterdepend", function(event, container, data) {
 $(document).on("xcrudafterjoinrelation", function(event, container) {
 	Xcrud.init_datepicker(container);
 	Xcrud.init_texteditor(container);
-	Xcrud.init_datepicker_range($(container).find('.xcrud-columns-select option:selected').data('type'), container);
+	Xcrud.init_datepicker_range(container);
 	Xcrud.map_init(container);
 	Xcrud.check_fixed_buttons();
 	Xcrud.init_tooltips(container);

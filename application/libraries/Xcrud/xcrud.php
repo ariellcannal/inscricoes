@@ -6877,7 +6877,7 @@ class Xcrud
             'tag' => 'input',
             'type' => 'text',
             'data-type' => 'date',
-            'data-mask' => $this->create_moment_masks('date'),
+            /* 'data-mask' => $this->create_moment_masks('date'), */
             'value' => $this->mysql2date($value)
         );
         $tag['class'] .= ' xcrud-datepicker';
@@ -6910,7 +6910,7 @@ class Xcrud
             'tag' => 'input',
             'type' => 'text',
             'data-type' => 'datetime',
-            'data-mask' => $this->create_moment_masks('datetime'),
+            /* 'data-mask' => $this->create_moment_masks('datetime'), */
             'value' => $this->mysql2datetime($value)
         );
         $tag['class'] .= ' xcrud-datepicker';
@@ -6932,7 +6932,7 @@ class Xcrud
             'tag' => 'input',
             'type' => 'text',
             'data-type' => 'timestamp',
-            'data-mask' => $this->create_moment_masks('datetime'),
+            /* 'data-mask' => $this->create_moment_masks('datetime'), */
             'value' => $this->mysql2datetime($value)
         );
         $tag['class'] .= ' xcrud-datepicker';
@@ -6954,7 +6954,7 @@ class Xcrud
             'tag' => 'input',
             'type' => 'text',
             'data-type' => 'time',
-            'data-mask' => $this->create_moment_masks('time'),
+            /* 'data-mask' => $this->create_moment_masks('time'), */
             'value' => $this->mysql2time($value)
         );
         $tag['class'] .= ' xcrud-datepicker';
@@ -6976,7 +6976,7 @@ class Xcrud
             'tag' => 'input',
             'type' => 'text',
             'data-type' => 'year',
-            'data-mask' => $this->create_moment_masks('year')
+            /* 'data-mask' => $this->create_moment_masks('year') */
         );
         if (! empty($value)) {
             $tag['value'] = (int) $value;
@@ -11470,8 +11470,11 @@ class Xcrud
                     $attr['type'] = 'text';
                     $attr['name'] = 'search_submit][' . $line . '][phrase][from';
                     $attr['value'] = ((isset($phrase['from']) && $field == @$this->search_submit[$line]['column']) ? $phrase['from'] : '');
+                    $attr['data-rangestart'] = 'search_submit][' . $line . '][phrase][from';
+                    $attr['data-rangeend'] = 'search_submit][' . $line . '][phrase][to';
                     // $fieldlist['date'] .= $this->open_tag('span', 'xcrud-range');
                     $fieldlist['date'] .= $this->single_tag('input', 'xcrud-datepicker-from ' . $class . ' ' . $this->theme_config('search_from'), $attr);
+                    
                     $attr['name'] = 'search_submit][' . $line . '][phrase][to';
                     $attr['value'] = (isset($phrase['to']) && $field == @$this->search_submit[$line]['column']) ? $phrase['to'] : '';
                     $fieldlist['date'] .= $this->single_tag('input', 'xcrud-datepicker-to ' . $class . ' ' . $this->theme_config('search_to'), $attr);

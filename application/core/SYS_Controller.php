@@ -256,19 +256,16 @@ class SYS_Controller extends CI_Controller
          * SELECT2
          */
         $this->assets->css('https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', true);
+        $this->assets->css('https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css', true);
         $this->assets->js('https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', true);
-        $this->assets->css('/assets/css/themes/select2.css', true);
+        $this->assets->js('https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/pt-BR.js', true);
 
         /*
          * DATETIME
          */
-        $this->assets->css('../../assets/plugins/bootstrap-datetimepicker/bootstrap-datetimepicker.css');
-        $this->assets->js('../../assets/plugins/moment/moment.min.js');
-        $this->assets->js('../../assets/plugins/moment/locales.min.js');
-        $this->assets->js('../../assets/plugins/_language/' . $this->config->item('language') . '/moment.js');
-        $this->assets->js('../../assets/plugins/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js');
-        $this->assets->js('../../assets/plugins/_language/' . $this->config->item('language') . '/bootstrap-datetimepicker.js');
-
+        $this->assets->css('https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.10.4/dist/css/tempus-dominus.min.css', true);
+        $this->assets->js('https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.10.4/dist/js/tempus-dominus.min.js',true);
+        
         /*
          * MASKED
          */
