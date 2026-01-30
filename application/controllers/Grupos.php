@@ -226,10 +226,6 @@ class Grupos extends SYS_Controller
         $gtx->label('gtx_parcelas', 'Parcelamento Máximo');
         $gtx->label('gtx_ordem', 'Ordem de Exibição');
         $gtx->label('gtx_aceitaCartao', 'Aceita Cartão de Crédito?');
-        $gtx->label('gtx_publico', 'Público?');
-        $gtx->label('gtx_linkOculto', 'Link Oculto');
-        $gtx->label('gtx_linkOcultoValidade', 'Validade do Link Oculto');
-        $gtx->label('gtx_comentario', 'Comentário');
         $gtx->label('gtx_descricao', 'Descrição');
         $gtx->label('gtx_primeiraParcela', 'Cobrar na Primeira Parcela/PIX?');
 
@@ -237,8 +233,8 @@ class Grupos extends SYS_Controller
 
         $gtx->set_var('after_task', 'list');
 
-        $gtx->columns('gtx_comentario,gtx_descricao,gtx_primeiraParcela,gtx_aceitaCartao,gtx_parcelas,gtx_ordem,gtx_publico,gtx_linkOculto,gtx_linkOcultoValidade');
-        $gtx->fields('gtx_parcelas,gtx_valorTotal,gtx_comentario,gtx_aceitaCartao,gtx_primeiraParcela,gtx_ordem,gtx_publico,gtx_linkOculto,gtx_linkOcultoValidade');
+        $gtx->columns('gtx_descricao,gtx_primeiraParcela,gtx_aceitaCartao,gtx_parcelas');
+        $gtx->fields('gtx_descricao,gtx_parcelas,gtx_valorTotal,gtx_aceitaCartao,gtx_primeiraParcela');
 
         $gtx->change_type('gtx_valorTotal', 'price', null, array(
             'prefix' => 'R$ ',

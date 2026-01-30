@@ -89,7 +89,7 @@ class InscricoesLib
         $this->CI->load->model('operadoras_model');
         $this->CI->load->model('inscricoes_model');
         $this->CI->load->library('controllers/TransacoesLib', null, 'transacoes');
-        $this->CI->transacoes->sincronizar($this->CI->operadoras_model->getTransacoesPorInscricao($ins_id),0,false);
+        $this->CI->transacoes->sincronizar($this->CI->operadoras_model->getTransacoesPorInscricao($ins_id), 0, false);
         $this->CI->inscricoes_model->setTotaisInscricao($ins_id);
     }
 
@@ -109,7 +109,7 @@ class InscricoesLib
         $vars['alu'] = $this->CI->alunos_model->getRow($vars['ins']['ins_aluno']);
 
         if (empty($vars['ins'])) {
-            return set_status_header(404,'Essa inscrição não foi localizada');
+            return set_status_header(404, 'Essa inscrição não foi localizada');
         } else if (! empty($vars['ins']['ins_aprovada'])) {
             // return set_status_header(400,'Essa inscrição já foi aprovada');
         }
@@ -189,11 +189,57 @@ class InscricoesLib
             if (ENVIRONMENT == 'development') {
                 // $val_total = 1.00 * $qtd_parcelas;
             }
+            $taxas_pendentes = [];
+            $somaPix = 0;
+            foreach ($this->CI->grupos_model->getTaxasAdicionais($grp['grp_id']) as $taxa) {
+                $prefix = 'inscricoes.taxa_' . $taxa['gtx_id'] . '_';
+                $pedido_id = 'T' . str_pad($taxa['gtx_id'], 3, '0', STR_PAD_RIGHT);
+                $pedido_id .= 'A' . str_pad($ins['ins_aluno'], 3, '0', STR_PAD_RIGHT);
+                $pedido_id .= substr(time(), strlen(time()) - 3, 3);
+
+                if ($taxa['gtx_primeiraParcela'] == '1' && $gfp['gfp_aceitaCartao'] == 0) {
+                    $somaPix += $taxa['gtx_valorTotal'];
+                    continue;
+                }
+
+                if ($taxa['gtx_primeiraParcela'] == '1') {
+                    /* TAXAS DA PRIMEIRA PARCELA */
+                    $qtd_parcelas = 1;
+                    $cartao = 'curso';
+                } else {
+                    /* TAXAS DA POSTERIORES */
+                    $qtd_parcelas = explode('_', $postdata->get($prefix . 'fop'))[1];
+                    if (! empty($postdata) && $postdata->get($prefix . 'alu_cartoes') == 'novo') {
+                        // aluno digitou um novo cartao
+                        $cartao = new Cartao();
+                        $cartao->setSalvar(true);
+                        $cartao->setNumero($postdata->get($prefix . 'rec_cartao'));
+                        $cartao->setCodigo($postdata->get($prefix . 'rec_cartaoCodigo'));
+                        $cartao->setNome(strtoupper(preg_replace("/&([a-z])[a-z]+;/i", "$1", htmlentities(trim($postdata->get($prefix . 'rec_cartaoNome'))))));
+                        $validade = explode('/', $postdata->get($prefix . 'rec_cartaoValidade'));
+                        $cartao->setVencimentoMes(trim($validade[0]));
+                        $cartao->setVencimentoAno(trim($validade[1]));
+                        $cartao = $interface->saveCard($alu, $cartao);
+                    } else if (! empty($postdata) && $postdata->get($prefix . 'alu_cartoes') == 'mesmo') {
+                        /* Utiliza o mesmo cartão da cobrança */
+                        $cartao = 'curso';
+                    } else if (! empty($postdata)) {
+                        // aluno selecionou outro cartao salvo
+                        $cartao = $postdata->get($prefix . 'alu_cartoes');
+                    }
+                }
+
+                $pedido = new Pedido($pedido_id, $taxa['gtx_valorTotal'], $qtd_parcelas, substr(strtolower($taxa['gtx_descricao']), 0, 12), $taxa['gtx_descricao']);
+                $taxas_pendentes[] = [
+                    'pedido' => $pedido,
+                    'cartao' => $cartao
+                ];
+            }
 
             $pedido_id = 'G' . str_pad($ins['ins_grupo'], 3, '0', STR_PAD_RIGHT);
             $pedido_id .= 'A' . str_pad($ins['ins_aluno'], 3, '0', STR_PAD_RIGHT);
             $pedido_id .= substr(time(), strlen(time()) - 3, 3);
-            $pedido = new Pedido($pedido_id, $val_total, $qtd_parcelas, substr('TAPA' . strtolower($grp['grp_idFaturaCartao']), 0, 12), $grp['grp_nomePublico']);
+            $pedido = new Pedido($pedido_id, $val_total, $qtd_parcelas, substr(strtolower($grp['grp_idFaturaCartao']), 0, 12), $grp['grp_nomePublico']);
 
             if ($gfp['gfp_aceitaCartao'] == 1) {
                 if (! empty($postdata) && $postdata->get('alu_cartoes') == 'novo') {
@@ -227,12 +273,14 @@ class InscricoesLib
                 }
 
                 if ($capture && ! empty($cartao)) {
+                    $cartao_curso = $cartao;
                     $transacao = $interface->creditcard($alu, $pedido, $cartao);
                     if ($transacao === false) {
                         $xcrud->set_notify('Por favor, insira novamente os dados do cartão.', 'alert', true);
                     }
                 }
             } else if ($capture) {
+                $pedido->setValor($pedido->getValor() + $somaPix);
                 $transacao = $interface->pix($alu, $pedido);
             }
         }
@@ -251,6 +299,25 @@ class InscricoesLib
             } else if ($transacao->getOperadoraErros()) {
                 $this->email_inscricao($ins_id, 'transacao_nao_aprovada', $transacao);
             } else {
+                foreach ($taxas_pendentes as $pendencia) {
+                    if ($pendencia['cartao'] === 'curso') {
+                        $pendencia['cartao'] = $cartao_curso;
+                    }
+                    $transacao_taxa = $interface->creditcard($alu, $pendencia['pedido'], $pendencia['cartao']);
+                    if ($transacao_taxa instanceof Transacao) {
+                        $this->CI->load->library('controllers/TransacoesLib', null, 'transacoes');
+                        $transacao_taxa = new OperadorasTransacoesEntity($transacao_taxa->toArray(true));
+                        $transacao_taxa->setForma($this->CI->transacoes->selectForma($transacao_taxa));
+                        $transacao_taxa->setInscricao($ins_id);
+                        $transacao_taxa->setValorLiquido(0);
+                        $otr_id = $this->CI->operadoras_model->inserirTransacao($transacao_taxa->toArray(false));
+                        $transacao_taxa->setId($otr_id);
+
+                        if ($transacao_taxa->getOperadoraErros() && ! empty($xcrud)) {
+                            $xcrud->set_notify('Transação da ' . $taxa['gtx_descricao'] . ' não aprovada: ' . $transacao->getOperadoraErros(), 'alert', true);
+                        }
+                    }
+                }
                 return $this->set_recebiveis($transacao, $ins_id);
             }
             return false;
@@ -275,10 +342,14 @@ class InscricoesLib
     /**
      * Envia notificações para o aluno ou coordenadores de acordo com o tipo.
      *
-     * @param int        $ins_id      Identificador da inscrição
-     * @param string     $tipo        Tipo de notificação
-     * @param mixed|null $transacao   Dados da transação relacionada
-     * @param bool       $forceAluno  Força envio ao aluno quando o tipo é pagamento_confirmado
+     * @param int $ins_id
+     *            Identificador da inscrição
+     * @param string $tipo
+     *            Tipo de notificação
+     * @param mixed|null $transacao
+     *            Dados da transação relacionada
+     * @param bool $forceAluno
+     *            Força envio ao aluno quando o tipo é pagamento_confirmado
      * @return bool|null Resultado do envio
      */
     public function email_inscricao($ins_id, $tipo, $transacao = null, bool $forceAluno = false)
@@ -294,7 +365,7 @@ class InscricoesLib
             $transacao = new OperadorasTransacoesEntity($transacao);
         }
         $vars['transacao'] = $transacao;
-        
+
         if ($tipo == 'solicita_aprovacao') {
             $destinatarios = [];
             foreach ($this->CI->grupos_model->getCoordenadoresDoGrupo($vars['ins']['ins_grupo']) as $row) {

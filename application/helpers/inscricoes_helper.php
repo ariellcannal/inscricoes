@@ -137,7 +137,7 @@ if (! function_exists('BI_inscricao_aluno')) {
         // Processar taxas adicionais
         $taxasPostdata = [];
         foreach ($postdata->to_array() as $k => $v) {
-            if (strpos($k, 'taxa_') === 0) {
+            if (strpos($k, 'inscricoes.taxa_') === 0) {
                 $taxasPostdata[$k] = $v;
             }
         }

@@ -115,9 +115,6 @@ if (! function_exists('BI_gtx')) {
         if ($postdata->get('gtx_parcelas') > 1) {
             $postdata->set('gtx_aceitaCartao', '1');
         }
-        $total = str_replace('.', '', $postdata->get('gtx_valorTotal'));
-        $total = (float) str_replace(',', '.', $total);
-        $postdata->set('gtx_descricao', 'R$' . number_format($total, 2, ',', '.') . ' ' . ($postdata->get('gtx_parcelas') > 1 ? 'em até ' . $postdata->get('gtx_parcelas') . 'x no' : 'no') . ' ' . ($postdata->get('gtx_aceitaCartao') ? "cartão de crédito" : "PIX"));
     }
 }
 
@@ -125,8 +122,6 @@ if (! function_exists('BU_gtx')) {
 
     function BU_gtx($postdata, $gtx_id, $xcrud)
     {
-        $total = str_replace('.', '', $postdata->get('gtx_valorTotal'));
-        $total = (float) str_replace(',', '.', $total);
-        $postdata->set('gtx_descricao', 'R$' . number_format($total, 2, ',', '.') . ' ' . ($postdata->get('gtx_parcelas') > 1 ? 'em até ' . $postdata->get('gtx_parcelas') . 'x no' : 'no') . ' ' . ($postdata->get('gtx_aceitaCartao') ? "cartão de crédito" : "PIX"));
+        
     }
 }

@@ -2,32 +2,32 @@
 
 class Inscricoes extends SYS_Controller
 {
-    
+
     function __construct()
     {
         parent::__construct();
         $this->load->library('controllers/InscricoesLib', null, 'inscricoes');
     }
-    
+
     public function index()
     {
         $this->checkLogin();
         $this->assets->js('inscricoes_admin.js');
-        
+
         $this->load->model('grupos_model');
         $xcrud = xcrud_get_instance();
         $xcrud->table('inscricoes');
         $xcrud->table_name('Inscrições');
-        
+
         $xcrud->set_var('after_task', 'list');
-        
+
         $xcrud->set_var('custom_head', '/inscricao/modal_whatsAppMsg.php');
-        
+
         $xcrud->set_var('replace_title', '#{ins_id}');
-        
+
         $xcrud->subselect('totalRecebido', 'SELECT IFNULL(SUM(otr_valorBruto),0) FROM operadoras_transacoes WHERE otr_inscricao = {ins_id} AND otr_confirmada = 1');
         $xcrud->subselect('transacaoConfirmada', 'SELECT IFNULL(otr_confirmada,0) FROM operadoras_transacoes WHERE otr_inscricao = {ins_id} ORDER BY otr_confirmada DESC LIMIT 1');
-        
+
         $xcrud->label('ins_grupo', 'Grupo');
         $xcrud->label('ins_aluno', 'Aluno');
         $xcrud->label('ins_status', 'Status');
@@ -54,12 +54,12 @@ class Inscricoes extends SYS_Controller
         $xcrud->label('totalRecebido', 'Total Recebido');
         $xcrud->label('ins_id', 'ID');
         $xcrud->label('ins_tempData', 'Temp');
-        
+
         $xcrud->join('ins_aluno', 'alunos', 'alu_id', false, true);
         $xcrud->join('ins_grupo', 'grupos', 'grp_id', false, true);
-        
+
         $xcrud->validation_required('ins_forma', 1);
-        
+
         $ativos = $this->grupos_model->getAtivos();
         if ($ativos) {
             foreach ($ativos as $g) {
@@ -69,26 +69,26 @@ class Inscricoes extends SYS_Controller
             $filtro['Grupos Ativos'] = 'ins_grupo IN (' . implode(',', $ids) . ')';
             $xcrud->custom_filter('esquerda', array_merge($filtro, $g_ativos), 'Grupos Ativos');
         }
-        
+
         $xcrud->disabled('ins_id,ins_IP,ins_data,ins_tempData');
         $xcrud->disabled('ins_grupo,ins_aluno', 'edit');
-        
+
         $xcrud->highlight_row('ins_valorModulo', '=', '0', null, 'table-info');
         $xcrud->highlight_row('ins_valorDevido', '>', '0', null, 'table-warning');
         $xcrud->highlight_row('ins_valorDevido', '<=', '0', null, 'table-success');
         $xcrud->highlight_row('ins_status', '=', 'Cancelada', null, 'table-danger');
-        
+
         $xcrud->columns('ins_id,ins_status,ins_grupo,ins_data,alunos.alu_nomeArtistico,alunos.alu_email,alunos.alu_celular,ins_forma,ins_valorDesconto,ins_motivoDesconto,ins_valorModulo,ins_valorTotalPago,ins_valorDevido');
         $xcrud->sum('ins_valorTotalPago,ins_valorModulo,ins_valorDevido');
-        
+
         $xcrud->fields('ins_grupo,ins_forma,ins_aluno,ins_valorDesconto,ins_motivoDesconto,ins_comentario', null, null, 'create');
         $xcrud->fields('ins_id,ins_grupo,ins_aluno,ins_status,ins_grupo,ins_forma,ins_valorDesconto,ins_motivoDesconto,ins_comentario,ins_IP,ins_data,ins_tempData', null, null, 'edit');
-        
+
         $xcrud->custom_button('#', 'Mensagem', 'btn-icon fab fa-whatsapp', 'btn btn-sm btn-info', [
             'data-bs-toggle' => 'modal',
             'data-bs-target' => '#whatsAppMsg'
         ]);
-        
+
         $xcrud->create_action('reenviar_confirmacao', 'reenviar_confirmacao', 'inscricoes_helper.php', 'fas fa-check-double');
         $xcrud->button('#', "Reenviar Confirmação", 'fas fa-check-double', 'btn btn-info xcrud-action', [
             'data-primary' => '{ins_id}',
@@ -108,7 +108,7 @@ class Inscricoes extends SYS_Controller
             'data-action' => 'whatsAppMsg',
             'data-msg' => ''
         ]);
-        
+
         $xcrud->create_action('solicitar_aprovacao_admin', 'solicitar_aprovacao_admin', 'inscricoes_helper.php', 'fa fa-envelope');
         $xcrud->button('#', "Solicitar Aprovação", 'fa fa-envelope', 'btn btn-info xcrud-action', [
             'data-primary' => '{ins_id}',
@@ -131,7 +131,7 @@ class Inscricoes extends SYS_Controller
                 '1'
             ]
         ]);
-        
+
         $xcrud->create_action('aprovar_admin', 'aprovar_admin', 'inscricoes_helper.php', 'fas fa-thumbs-up');
         $xcrud->button('#', "Aprovar", 'fas fa-thumbs-up', 'btn btn-info xcrud-action', [
             'data-primary' => '{ins_id}',
@@ -155,7 +155,7 @@ class Inscricoes extends SYS_Controller
                 '1'
             ]
         ]);
-        
+
         $xcrud->create_action('enviar_declaracao', 'enviar_declaracao', 'inscricoes_helper.php', 'fa fa-envelope');
         $xcrud->button('#', "Enviar declaração", 'fas fa-file', 'btn btn-default btn-sm btn-info xcrud-action', [
             'data-primary' => '{ins_id}',
@@ -169,18 +169,21 @@ class Inscricoes extends SYS_Controller
                 date('Y-m-d')
             ]
         ]);
-        
+
         $xcrud->create_action('sincronizarInscricao', 'sincronizarInscricao', 'inscricoes_helper.php', 'fas fa-sync');
         $xcrud->button('#', "Atualizar Totais", 'fas fa-sync', 'btn btn-info xcrud-action', [
             'data-primary' => '{ins_id}',
             'data-task' => 'action',
             'data-action' => 'sincronizarInscricao'
         ]);
-        
+
         $xcrud->relation('ins_grupo', 'grupos', 'grp_id', 'grp_nome', 'grp_ativo=1');
-        $xcrud->relation('ins_forma', 'grupos_formas', 'gfp_id', ['gfp_valorTotal','gfp_comentario'], null, null, null, ' ', null, null, 'gfp_grupo', 'ins_grupo');
+        $xcrud->relation('ins_forma', 'grupos_formas', 'gfp_id', [
+            'gfp_valorTotal',
+            'gfp_comentario'
+        ], null, null, null, ' ', null, null, 'gfp_grupo', 'ins_grupo');
         $xcrud->relation('ins_aluno', 'alunos', 'alu_id', 'alu_nomeArtistico');
-        
+
         $xcrud->change_type('ins_valorTotalPago,ins_valorModulo,ins_valorDevido,ins_valorDesconto', 'price', null, array(
             'decimals' => '2',
             'separator' => '.',
@@ -188,42 +191,42 @@ class Inscricoes extends SYS_Controller
         ));
         $xcrud->change_type('ins_motivoDesconto,ins_comentario', 'text');
         $xcrud->change_type('ins_tempData', 'textarea');
-        
+
         $xcrud->unset_print();
         $xcrud->unset_csv();
         $xcrud->unset_view();
         $xcrud->unset_numbers(false);
-        
+
         $xcrud->order_by('ins_grupo', 'ASC');
         $xcrud->order_by('ins_valorModulo', 'DESC');
         $xcrud->order_by('ins_valorDevido', 'DESC');
         $xcrud->order_by('ins_valorTotalPago', 'ASC');
         $xcrud->order_by('alunos.alu_nomeArtistico', 'ASC');
-        
+
         $xcrud->no_quotes('ins_data');
         $xcrud->pass_var('ins_data', 'NOW()', 'create');
         $xcrud->pass_var('ins_user', $this->session->userdata('usr_id'), 'create');
         $xcrud->pass_var('ins_IP', $_SERVER['REMOTE_ADDR'], 'create');
-        
+
         $xcrud->pass_default('ins_grupo', $this->session->userdata('last_grupo'));
         $xcrud->pass_default('ins_aluno', $this->session->userdata('last_aluno'));
-        
+
         $xcrud->before_insert('BI_inscricao_admin', 'inscricoes_helper.php');
         $xcrud->after_insert('AI_inscricao_admin', 'inscricoes_helper.php');
         $xcrud->after_update('AU_inscricao_admin', 'inscricoes_helper.php');
-        
+
         $xcrud->replace_remove('INS_replace_remove', 'inscricoes_helper.php');
-        
+
         $xcrud->mask('alunos.alu_celular', '(00) 00000-0000');
         $xcrud->mask('alunos.alu_cpf', '000.000.000-000');
         $xcrud->validation_pattern('alunos.alu_email', 'email');
         $xcrud->validation_required('alunos.alu_cpf', 1);
-        
+
         /* RECEBÍVEIS */
         $rec = $xcrud->nested_table('Recebíveis', 'ins_id', 'recebiveis', 'rec_inscricao');
-        
+
         $rec->set_var('replace_title', 'Recebível #{rec_id}');
-        
+
         $rec->table_name('Recebiveis');
         $rec->label('rec_valor', 'Valor Bruto');
         $rec->label('rec_valorLiquido', 'Valor Líquido');
@@ -237,21 +240,21 @@ class Inscricoes extends SYS_Controller
         $rec->label('rec_estornoValor', 'Total Estornado');
         $rec->label('rec_operadoraID', 'Operadora ID');
         $rec->label('rec_operadoraStatus', 'Operadora Status');
-        
+
         $rec->columns('rec_id,rec_dataTransacao,rec_creditoUtilizado,rec_forma,rec_valor,rec_valorLiquido,rec_estornoValor,rec_dataRecebimento,rec_operadoraID,rec_operadoraStatus');
         $rec->fields('rec_id,rec_valor,rec_valorLiquido,rec_creditoUtilizado,rec_forma,rec_dataTransacao,rec_dataRecebimento,rec_recebido');
-        
+
         $rec->change_type('rec_valor,rec_valorLiquido', 'price', '', array(
             'decimals' => '2',
             'separator' => '.',
             'point' => ','
         ));
-        
+
         $rec->relation('rec_creditoUtilizado', 'alunos_creditos', 'alc_id', array(
             'alc_id',
             'alc_motivo'
         ), null, null, null, ' - ', null, null);
-        
+
         $rec->unset_print();
         $rec->unset_csv();
         $rec->unset_add();
@@ -260,30 +263,30 @@ class Inscricoes extends SYS_Controller
         $rec->unset_pagination();
         $rec->unset_limitlist();
         $rec->unset_remove();
-        
+
         /* REPASSES */
         $rre = $rec->nested_table('Repasses', 'rec_id', 'recebiveis_repasses', 'rre_recebivel');
-        
+
         $rre->table_name('Repasses');
         $rre->label('rre_usuario', 'Usuário');
         $rre->label('rre_valor', 'Valor');
         $rre->label('repasses.rep_data', 'Consolidação');
         $rre->label('repasses.rep_efetivado', 'PIX');
-        
+
         $rre->relation('rre_usuario', 'usuarios', 'usr_id', 'usr_nome');
-        
+
         $rre->join('rre_repasse', 'repasses', 'rep_id');
-        
+
         $rre->columns('rre_usuario, rre_valor, repasses.rep_data, repasses.rep_efetivado');
-        
+
         $rre->sum('rre_valor');
-        
+
         $rre->change_type('rre_valor', 'price', '', array(
             'decimals' => '2',
             'separator' => '.',
             'point' => ','
         ));
-        
+
         $rre->unset_print();
         $rre->unset_csv();
         $rre->unset_add();
@@ -293,11 +296,11 @@ class Inscricoes extends SYS_Controller
         $rre->unset_limitlist();
         $rre->unset_remove();
         $rre->unset_view();
-        
+
         $this->vars['conteudo'] = $xcrud->render();
         $this->load->view('index.php', $this->vars);
     }
-    
+
     /**
      * Exibe formulário de inscrição.
      *
@@ -313,28 +316,28 @@ class Inscricoes extends SYS_Controller
         $this->assets->js('../../assets/plugins/card/jquery.card.js');
         $this->assets->js('inscricoes_aluno.js');
         $this->assets->inline('recaptcha', config_item('recaptcha_key'));
-        
+
         $this->load->model('grupos_model');
         $this->load->model('alunos_model');
         $this->load->model('operadoras_model');
         $this->load->model('inscricoes_model');
         $this->load->helper('inscricoes_helper');
-        
+
         if (! empty($ins_id) && ! $ins = $this->inscricoes_model->getInscricaoCompleta($ins_id)) {
             set_status_header(401, lang('error_inscricao_nao_encontrada'));
             return;
         }
-        if (! empty($ins['ins_valorDevido']) && (int) $ins['ins_valorDevido'] <= 0) {
+        if (ENVIRONMENT != "development" && ! empty($ins['ins_valorDevido']) && (int) $ins['ins_valorDevido'] <= 0) {
             set_status_header(401, lang('error_inscricao_quitada'));
             return;
         }
-        
+
         global $processoSeletivo;
         $processoSeletivo = false;
-        
+
         $grp_id_slug = urlencode(urldecode($grp_id_slug));
         $this->vars['grp'] = $this->grupos_model->getBySlugOrID($grp_id_slug);
-        
+
         if (! $this->vars['grp']) {
             set_status_header(404, lang('error_ultimas_vagas_tente_novamente'));
             return;
@@ -342,11 +345,11 @@ class Inscricoes extends SYS_Controller
             set_status_header(401, lang('error_inscricoes_encerradas'));
             return;
         }
-        
+
         if (ENVIRONMENT === 'production' && $this->vars['grp']['grp_pixel']) {
             $this->assets->inline('pixel', $this->vars['grp']['grp_pixel']);
         }
-        
+
         $semana[0] = 'Domingos';
         $semana[1] = 'Segundas';
         $semana[2] = 'Terças';
@@ -365,22 +368,53 @@ class Inscricoes extends SYS_Controller
         } else {
             $this->vars['grp']['grp_diaSemana'] = implode(' e ', $grp_diaSemana);
         }
-        
+
         if (! $ins_id && $this->vars['grp']['grp_maximoInscricoes'] > 0 && $this->vars['grp']['grp_maximoInscricoes'] <= count($this->grupos_model->getAlunosInscritos($this->vars['grp']['grp_id']))) {
             set_status_header(401, lang('error_turma_completa'));
             return;
         }
-        
+
         if ($this->vars['grp']['grp_processoSeletivo'] == '1') {
             $processoSeletivo = true;
         }
-        
+
         if ($grp_id_slug == $this->vars['grp']['grp_id']) {
             redirect('/inscricao/' . $this->vars['grp']['grp_slug'], 301);
         }
-        
+
         if (empty($_GET['utm_content'])) {
             $_GET['utm_content'] = null;
+        }
+
+        // Processar taxas adicionais
+        $taxasAdicionais = [];
+        $taxasPrimeiraParcela = [];
+        $taxasPosteriores = [];
+        $totalTaxasPrimeiraParcela = 0;
+        
+        foreach ($this->grupos_model->getTaxasAdicionais($this->vars['grp']['grp_id'], $_GET['utm_content']) as $taxa) {
+            if ($taxa['gtx_parcelas'] > 1) {
+                $taxa['gtx_aceitaCartao'] = 1;
+            }
+            
+            $taxaData = [
+                'gtx_id' => $taxa['gtx_id'],
+                'gtx_comentario' => $taxa['gtx_comentario'],
+                'gtx_descricao' => $taxa['gtx_descricao'],
+                'gtx_valorTotal' => $taxa['gtx_valorTotal'],
+                'gtx_parcelas' => $taxa['gtx_parcelas'],
+                'gtx_aceitaCartao' => $taxa['gtx_aceitaCartao'],
+                'gtx_primeiraParcela' => $taxa['gtx_primeiraParcela']
+            ];
+            
+            $taxasAdicionais[] = $taxaData;
+            
+            if ($taxa['gtx_primeiraParcela'] == '1') {
+                $totalTaxasPrimeiraParcela += $taxaData['gtx_valorTotal'];
+                $taxasPrimeiraParcela[] = $taxaData;
+            } else {
+                $taxasPosteriores[] = $taxaData;
+            }
         }
         
         foreach ($this->grupos_model->getFormas($this->vars['grp']['grp_id'], $_GET['utm_content']) as $r) {
@@ -390,14 +424,14 @@ class Inscricoes extends SYS_Controller
             }
             $gfp_valorTotal_original = $r['gfp_valorTotal'];
             $parcela_minima = ($gfp_valorTotal_original / 2) / $r['gfp_parcelas'];
-            
+
             if (! empty($ins['ins_valorDesconto'])) {
                 $r['gfp_valorTotal'] = $r['gfp_valorTotal'] - $ins['ins_valorDesconto'];
             }
             if (! empty($ins['ins_valorDevido']) && ! empty($ins['ins_valorTotalPago']) && (int) $ins['ins_valorTotalPago'] > 0 && (int) $ins['ins_valorDevido'] > 0) {
                 $exibe = false;
                 $r['gfp_valorTotal'] = (int) $ins['ins_valorDevido'];
-                
+
                 if ($r['gfp_parcelas'] == 1) {
                     $exibe = true;
                 } else if ($r['gfp_parcelas'] > 1) {
@@ -413,10 +447,9 @@ class Inscricoes extends SYS_Controller
                 }
             }
             if ($exibe) {
-                // for ($i = 1; $i <= $r['gfp_parcelas']; $i ++) {
-                $i = $r['gfp_parcelas'];
-                $formas_temp[$i][$r['gfp_id'] . '_' . $i . '_' . $r['gfp_aceitaCartao'] . '_' . ($r['gfp_valorTotal'] / $i)] = ($r['gfp_comentario'] != "" ? $r['gfp_comentario'] . ': ' : '') . $i . ' parcela' . (($i > 1) ? 's' : '') . ' de R$ ' . number_format($r['gfp_valorTotal'] / $i, 2, ',', '.') . ' ' . ($r['gfp_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
-                // }
+                for ($i = 1; $i <= $r['gfp_parcelas']; $i ++) {
+                    $formas_temp[$i][$r['gfp_id'] . '_' . $i . '_' . $r['gfp_aceitaCartao'] . '_' . ($r['gfp_valorTotal'] / $i).'_'.$totalTaxasPrimeiraParcela] = ($r['gfp_comentario'] != "" ? $r['gfp_comentario'] . ': ' : '') . $i . ' parcela' . (($i > 1) ? 's' : '') . ' de R$ ' . number_format($r['gfp_valorTotal'] / $i, 2, ',', '.') . ' ' . ($r['gfp_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
+                }
             }
             if (! empty($formas_temp)) {
                 ksort($formas_temp);
@@ -431,79 +464,6 @@ class Inscricoes extends SYS_Controller
             redirect('/inscricao/' . $this->vars['grp']['grp_slug'] . '?redirect=true', 301);
         }
         
-        // Processar taxas adicionais
-        $taxasAdicionais = [];
-        $taxasPrimeiraParcela = [];
-        $taxasPosteriores = [];
-        
-        foreach ($this->grupos_model->getTaxasAdicionais($this->vars['grp']['grp_id'], $_GET['utm_content']) as $taxa) {
-            $exibe = true;
-            if ($taxa['gtx_parcelas'] > 1) {
-                $taxa['gtx_aceitaCartao'] = 1;
-            }
-            
-            $gtx_valorTotal_original = $taxa['gtx_valorTotal'];
-            
-            if (!empty($ins['ins_valorDesconto'])) {
-                $taxa['gtx_valorTotal'] = $taxa['gtx_valorTotal'] - $ins['ins_valorDesconto'];
-            }
-            
-            if ($exibe) {
-                $taxaData = [
-                    'gtx_id' => $taxa['gtx_id'],
-                    'gtx_comentario' => $taxa['gtx_comentario'],
-                    'gtx_descricao' => $taxa['gtx_descricao'],
-                    'gtx_valorTotal' => $taxa['gtx_valorTotal'],
-                    'gtx_parcelas' => $taxa['gtx_parcelas'],
-                    'gtx_aceitaCartao' => $taxa['gtx_aceitaCartao'],
-                    'gtx_primeiraParcela' => $taxa['gtx_primeiraParcela']
-                ];
-                
-                $taxasAdicionais[] = $taxaData;
-                
-                if ($taxa['gtx_primeiraParcela'] == '1') {
-                    $taxasPrimeiraParcela[] = $taxaData;
-                } else {
-                    $taxasPosteriores[] = $taxaData;
-                }
-            }
-        }
-        
-        // Atualizar descrição das formas de pagamento para incluir taxas de primeira parcela
-        if (!empty($taxasPrimeiraParcela)) {
-            $valorTaxasPrimeira = 0;
-            $descricaoTaxas = [];
-            foreach ($taxasPrimeiraParcela as $taxa) {
-                $valorTaxasPrimeira += $taxa['gtx_valorTotal'];
-                $descricaoTaxas[] = $taxa['gtx_comentario'] ?: $taxa['gtx_descricao'];
-            }
-            
-            // Reprocessar formas adicionando o valor das taxas
-            $formas_com_taxas = [];
-            foreach ($formas as $key => $descricao) {
-                $partes = explode('_', $key);
-                if (count($partes) == 4) {
-                    $gfp_id = $partes[0];
-                    $parcelas = $partes[1];
-                    $aceitaCartao = $partes[2];
-                    $valorParcela = $partes[3];
-                    
-                    $valorTotalOriginal = $valorParcela * $parcelas;
-                    $valorTotalComTaxas = $valorTotalOriginal + $valorTaxasPrimeira;
-                    $novoValorParcela = $valorTotalComTaxas / $parcelas;
-                    
-                    $novoKey = $gfp_id . '_' . $parcelas . '_' . $aceitaCartao . '_' . $novoValorParcela . '_' . $valorTaxasPrimeira;
-                    
-                    $textoTaxas = ' + R$ ' . number_format($valorTaxasPrimeira, 2, ',', '.') . ' ref. ' . implode(', ', $descricaoTaxas);
-                    $formas_com_taxas[$novoKey] = str_replace(' parcela', ' parcela', $descricao) . $textoTaxas;
-                }
-            }
-            
-            if (!empty($formas_com_taxas)) {
-                $formas = $formas_com_taxas;
-            }
-        }
-        
         $mes = [];
         $ano = [];
         for ($i = 1; $i <= 12; $i ++) {
@@ -514,20 +474,21 @@ class Inscricoes extends SYS_Controller
             $v = date('Y', strtotime('+' . $i . ' years'));
             $ano[$v] = $v;
         }
-        
+
         $xcrud = xcrud_get_instance('inscricao_form');
         $xcrud->table('inscricoes');
         $xcrud->table_name('Inscrição');
-        
+
         $xcrud->set_var('grp', $this->vars['grp']['grp_id']);
         if (empty($ins_id)) {
             $xcrud->set_var('grp_slug', $this->vars['grp']['grp_slug']);
         }
-        
+
+        $xcrud->set_var('taxasPrimeiraParcela', $taxasPrimeiraParcela);
         $xcrud->set_var('after_task', 'view');
         $xcrud->set_lang('save_edit', lang('action_confirmar_inscricao'));
         $xcrud->set_lang('add_image', lang('action_selecionar_foto'));
-        
+
         $xcrud->create_field('fop', 'select', null, $formas);
         $xcrud->create_field('rec_cartao', 'text', null, [
             'inputmode' => 'numeric'
@@ -543,39 +504,43 @@ class Inscricoes extends SYS_Controller
         $xcrud->create_field('alu_cartoes', 'select', "novo", [
             "novo" => 'Inserir dados do cartão'
         ]);
-        
+
         // Criar campos dinâmicos para cada taxa posterior
         foreach ($taxasPosteriores as $idx => $taxa) {
             $prefix = 'taxa_' . $taxa['gtx_id'];
-            
+
             // Criar opções de pagamento para esta taxa
             $formasTaxa = [];
-            for ($i = 1; $i <= $taxa['gtx_parcelas']; $i++) {
+            for ($i = 1; $i <= $taxa['gtx_parcelas']; $i ++) {
                 $key = $taxa['gtx_id'] . '_' . $i . '_' . $taxa['gtx_aceitaCartao'] . '_' . ($taxa['gtx_valorTotal'] / $i);
-                $formasTaxa[$key] = ($taxa['gtx_comentario'] != "" ? $taxa['gtx_comentario'] . ': ' : '') . 
-                                    $i . ' parcela' . (($i > 1) ? 's' : '') . ' de R$ ' . 
-                                    number_format($taxa['gtx_valorTotal'] / $i, 2, ',', '.') . ' ' . 
-                                    ($taxa['gtx_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
+                $formasTaxa[$key] = ($taxa['gtx_comentario'] != "" ? $taxa['gtx_comentario'] . ': ' : '') . $i . ' parcela' . (($i > 1) ? 's' : '') . ' de R$ ' . number_format($taxa['gtx_valorTotal'] / $i, 2, ',', '.') . ' ' . ($taxa['gtx_aceitaCartao'] ? "no cartão de crédito" : "no PIX");
             }
-            
+
             // Criar campos para esta taxa
             $xcrud->create_field($prefix . '_fop', 'select', null, $formasTaxa);
-            $xcrud->create_field($prefix . '_rec_cartao', 'text', null, ['inputmode' => 'numeric']);
-            $xcrud->create_field($prefix . '_rec_cartaoCodigo', 'text', null, ['inputmode' => 'numeric']);
+            $xcrud->create_field($prefix . '_rec_cartao', 'text', null, [
+                'inputmode' => 'numeric'
+            ]);
+            $xcrud->create_field($prefix . '_rec_cartaoCodigo', 'text', null, [
+                'inputmode' => 'numeric'
+            ]);
             $xcrud->create_field($prefix . '_rec_cartaoValidadeMes', 'select', date('m'), $mes);
             $xcrud->create_field($prefix . '_rec_cartaoValidadeAno', 'select', date('Y'), $ano);
             $xcrud->create_field($prefix . '_rec_cartaoNome', 'text');
             $xcrud->create_field($prefix . '_rec_cartaoCPF', 'text');
-            $xcrud->create_field($prefix . '_alu_cartoes', 'select', "novo", ["novo" => 'Inserir dados do cartão', "mesmo" => 'Utilizar mesmo cartão']);
+            $xcrud->create_field($prefix . '_alu_cartoes', 'select', "novo", [
+                //"mesmo" => 'Utilizar mesma forma de pagamento',
+                "novo" => 'Inserir dados do cartão'
+            ]);
         }
-        
+
         $xcrud->join('ins_aluno', 'alunos', 'alu_id', 'a', true);
-        
+
         $xcrud->validation_required('a.alu_nascimento', 1);
-        
+
         $xcrud->change_type('a.alu_enderecoEstado', 'select', null, $this->inscricoes->estadosBrasileiros);
         $xcrud->change_type('a.alu_enderecoCep', 'text');
-        
+
         $xcrud->label('a.alu_nome', 'Nome Completo (como no CPF)');
         $xcrud->label('a.alu_nomeArtistico', 'Nome Artístico');
         $xcrud->label('a.alu_email', 'E-mail');
@@ -601,11 +566,11 @@ class Inscricoes extends SYS_Controller
         $xcrud->label('fop', 'Forma de Pagamento');
         $xcrud->label('a.alu_foto', 'Foto');
         $xcrud->label('a.alu_cv', 'Currículo Artístico');
-        
+
         // Labels e atributos para taxas posteriores
         foreach ($taxasPosteriores as $idx => $taxa) {
             $prefix = 'taxa_' . $taxa['gtx_id'];
-            
+
             $xcrud->label($prefix . '_fop', 'Forma de Pagamento');
             $xcrud->label($prefix . '_rec_cartao', 'Número do Cartão');
             $xcrud->label($prefix . '_rec_cartaoCodigo', 'CVV');
@@ -614,29 +579,54 @@ class Inscricoes extends SYS_Controller
             $xcrud->label($prefix . '_rec_cartaoNome', 'Nome (Como Impresso no Cartão)');
             $xcrud->label($prefix . '_rec_cartaoCPF', 'CPF do Titular');
             $xcrud->label($prefix . '_alu_cartoes', 'Selecione um cartão');
-            
-            $xcrud->set_attr($prefix . '_fop', ['id' => $prefix . '_fop', 'class' => 'taxa-fop']);
-            $xcrud->set_attr($prefix . '_rec_cartao', ['id' => $prefix . '_rec_cartao', 'autocomplete' => 'cc-number']);
-            $xcrud->set_attr($prefix . '_rec_cartaoCodigo', ['id' => $prefix . '_rec_cartaoCodigo', 'autocomplete' => 'cc-csc']);
-            $xcrud->set_attr($prefix . '_rec_cartaoNome', ['id' => $prefix . '_rec_cartaoNome', 'autocomplete' => 'cc-name']);
-            $xcrud->set_attr($prefix . '_rec_cartaoCPF', ['id' => $prefix . '_rec_cartaoCPF']);
-            $xcrud->set_attr($prefix . '_alu_cartoes', ['id' => $prefix . '_alu_cartoes']);
-            $xcrud->set_attr($prefix . '_rec_cartaoValidadeMes', ['class' => 'not_select2 form-control', 'autocomplete' => 'cc-exp-month', 'id' => $prefix . '_rec_cartaoValidadeMes']);
-            $xcrud->set_attr($prefix . '_rec_cartaoValidadeAno', ['class' => 'not_select2 form-control', 'autocomplete' => 'cc-exp-year', 'id' => $prefix . '_rec_cartaoValidadeAno']);
-            
+
+            $xcrud->set_attr($prefix . '_fop', [
+                'id' => $prefix . '_fop',
+                'class' => 'taxa-fop xcrud-input'
+            ]);
+            $xcrud->set_attr($prefix . '_rec_cartao', [
+                'id' => $prefix . '_rec_cartao',
+                'autocomplete' => 'cc-number'
+            ]);
+            $xcrud->set_attr($prefix . '_rec_cartaoCodigo', [
+                'id' => $prefix . '_rec_cartaoCodigo',
+                'autocomplete' => 'cc-csc'
+            ]);
+            $xcrud->set_attr($prefix . '_rec_cartaoNome', [
+                'id' => $prefix . '_rec_cartaoNome',
+                'autocomplete' => 'cc-name'
+            ]);
+            $xcrud->set_attr($prefix . '_rec_cartaoCPF', [
+                'id' => $prefix . '_rec_cartaoCPF'
+            ]);
+            $xcrud->set_attr($prefix . '_alu_cartoes', [
+                'id' => $prefix . '_alu_cartoes',
+                'class' => 'alu_cartoes xcrud-input'
+            ]);
+            $xcrud->set_attr($prefix . '_rec_cartaoValidadeMes', [
+                'class' => 'not_select2 form-control',
+                'autocomplete' => 'cc-exp-month',
+                'id' => $prefix . '_rec_cartaoValidadeMes'
+            ]);
+            $xcrud->set_attr($prefix . '_rec_cartaoValidadeAno', [
+                'class' => 'not_select2 form-control',
+                'autocomplete' => 'cc-exp-year',
+                'id' => $prefix . '_rec_cartaoValidadeAno'
+            ]);
+
             $xcrud->mask($prefix . '_rec_cartaoCPF', '000.000.000-00');
         }
-        
+
         $xcrud->fields('ins_id', true);
-        
+
         $xcrud->mask('a.alu_celular', '(00) 00000-0000');
         $xcrud->mask('a.alu_cpf,rec_cartaoCPF', '000.000.000-00');
         $xcrud->mask('a.alu_enderecoCep', '00000-000');
-        
+
         $xcrud->set_attr('a.alu_cpf,a.alu_nome,a.alu_nomeArtistico,a.alu_email,a.alu_cv,a.alu_celular,rec_cartaoCPF,a.alu_nascimento,a.alu_drt', array(
             'autocomplete' => 'off'
         ));
-        
+
         $xcrud->set_attr('a.alu_cpf', array(
             'id' => 'alu_cpf'
         ));
@@ -656,7 +646,8 @@ class Inscricoes extends SYS_Controller
             'id' => 'alu_nascimento'
         ));
         $xcrud->set_attr('alu_cartoes', array(
-            'id' => 'alu_cartoes'
+            'id' => 'alu_cartoes',
+            'class' => 'alu_cartoes xcrud-input'
         ));
         $xcrud->set_attr('a.alu_drt', array(
             'id' => 'alu_drt'
@@ -719,7 +710,7 @@ class Inscricoes extends SYS_Controller
             'consulta-cep' => 'cep',
             'onblur' => 'consultaCEP(this)'
         ));
-        
+
         $xcrud->change_type('a.alu_foto', 'image', '', array(
             'not_rename' => true,
             'width' => 200,
@@ -731,11 +722,11 @@ class Inscricoes extends SYS_Controller
             'not_rename' => true,
             'path' => $_SERVER['DOCUMENT_ROOT'] . DIR_IMAGEM_ALUNOS
         ));
-        
+
         if (ENVIRONMENT == "development" || $this->session->userdata('usr_id')) {
             $xcrud->pass_default('a.alu_cpf', '350.624.628-35');
         }
-        
+
         $xcrud->unset_list();
         $xcrud->unset_edit();
         $xcrud->unset_print();
@@ -743,40 +734,40 @@ class Inscricoes extends SYS_Controller
         $xcrud->unset_csv();
         $xcrud->unset_sortable();
         $xcrud->unset_remove();
-        
+
         $xcrud->before_insert('BI_inscricao_aluno', 'inscricoes_helper.php');
         $xcrud->before_update('BU_inscricao_aluno', 'inscricoes_helper.php');
         $xcrud->after_insert('AI_inscricao_aluno', 'inscricoes_helper.php');
         $xcrud->after_update('AU_inscricao_aluno', 'inscricoes_helper.php');
-        
+
         $xcrud->load_view('view', 'inscricao/inscricao_form_view.php');
         $xcrud->load_view('create', 'inscricao/inscricao_form.php');
         $xcrud->load_view('edit', 'inscricao/inscricao_form.php');
-        
+
         $xcrud->no_quotes('ins_data');
         $xcrud->pass_var('ins_grupo', $this->vars['grp']['grp_id']);
         $xcrud->pass_var('ins_data', 'NOW()');
         $xcrud->pass_var('ins_IP', $_SERVER['REMOTE_ADDR']);
-        
+
         // $xcrud->change_type('ins_forma','select',false,$formas);
-        
+
         $xcrud->where('ins_IP', $_SERVER['REMOTE_ADDR']);
-        
+
         if ($this->vars['grp']['grp_drtObrigatorio'] == '1') {
             $xcrud->validation_required('a.alu_drt', 1);
         }
         if ($processoSeletivo) {
             $xcrud->validation_required('a.alu_cv', 1);
         }
-        
+
         $xcrud->validation_required('a.alu_cpf,a.alu_celular,a.alu_endereco,a.alu_enderecoNumero,a.alu_enderecoBairro,a.alu_enderecoCidade,a.alu_enderecoEstado,a.alu_enderecoCep', 1);
         $xcrud->validation_pattern('alu_email', 'email');
-        
+
         // Passar variáveis para a view
         $xcrud->set_var('taxasAdicionais', json_encode($taxasAdicionais));
         $xcrud->set_var('taxasPrimeiraParcela', json_encode($taxasPrimeiraParcela));
         $xcrud->set_var('taxasPosteriores', json_encode($taxasPosteriores));
-        
+
         if (! empty($ins_id)) {
             $xcrud->unset_edit(false);
             $this->vars['conteudo'] = $xcrud->render('edit', $ins_id);
@@ -785,23 +776,23 @@ class Inscricoes extends SYS_Controller
         }
         $this->load->view('inscricao/index.php', $this->vars);
     }
-    
+
     public function aprovar($ins_id)
     {
         return $this->inscricoes->aprovar($ins_id);
     }
-    
+
     public function reprovar($ins_id)
     {
         return $this->inscricoes->reprovar($ins_id);
     }
-    
+
     public function totalizar()
     {
         $this->checkLogin();
         return $this->inscricoes->totalizar();
     }
-    
+
     public function whatsAppMsg()
     {
         $this->checkLogin();

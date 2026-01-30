@@ -101,7 +101,7 @@ $taxasPosteriores = json_decode($this->get_var('taxasPosteriores'), true) ?: [];
 		</div>
 	</div>
 </div>
-
+<hr/>
 <!-- Seção de Pagamento do Curso -->
 <div class="row inscricao_form">
 	<h4 class="col-md-12 mt-3">
@@ -116,6 +116,13 @@ $taxasPosteriores = json_decode($this->get_var('taxasPosteriores'), true) ?: [];
 	<div class="col-md-6 form-group">
         <?php echo $this->open_label_tag('inscricoes.fop','label').$this->fields_output['inscricoes.fop']['label'].$this->close_tag('label')?>
 		<?php echo $this->fields_output['inscricoes.fop']['field']?>
+		<?php
+        if(count($taxasPrimeiraParcela)){
+            foreach($taxasPrimeiraParcela as $taxa){
+                echo "<small>+ R$".number_format($taxa['gtx_valorTotal'],2,',')." referente a ".$taxa['gtx_descricao']."</small><br/>";
+            }
+        }
+        ?>
 	</div>
 	<div class="mesmo_cartao col-md-6 form-group" style="display: none;">
 		<?php echo $this->open_label_tag('inscricoes.alu_cartoes','label').$this->fields_output['inscricoes.alu_cartoes']['label'].$this->close_tag('label')?><br>
@@ -167,7 +174,6 @@ if (!empty($taxasPosteriores)) {
 <div class="row inscricao_form mt-4">
     <h4 class="col-md-12">
         Pagamento de <?php echo htmlspecialchars($taxa['gtx_descricao'] ?: $taxa['gtx_comentario']); ?><br>
-        <small>Taxa adicional - R$ <?php echo number_format($taxa['gtx_valorTotal'], 2, ',', '.'); ?></small>
     </h4>
 </div>
 
@@ -176,7 +182,7 @@ if (!empty($taxasPosteriores)) {
         <?php echo $this->open_label_tag('inscricoes.' . $prefix . '_fop','label').$this->fields_output['inscricoes.' . $prefix . '_fop']['label'].$this->close_tag('label')?>
         <?php echo $this->fields_output['inscricoes.' . $prefix . '_fop']['field']?>
     </div>
-    <div class="col-md-6 form-group taxa-mesmo-cartao-<?php echo $taxa['gtx_id']; ?>" style="display: none;">
+    <div class="col-md-6 form-group taxa-mesmo-cartao-<?php echo $taxa['gtx_id']; ?>">
         <?php echo $this->open_label_tag('inscricoes.' . $prefix . '_alu_cartoes','label').$this->fields_output['inscricoes.' . $prefix . '_alu_cartoes']['label'].$this->close_tag('label')?>
         <?php echo $this->fields_output['inscricoes.' . $prefix . '_alu_cartoes']['field']?>
     </div>
