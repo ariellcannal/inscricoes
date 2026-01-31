@@ -25,7 +25,7 @@ class Cron extends SYS_Controller
         }
 
         // Impede que o script consuma toda a RAM do servidor
-        ini_set('memory_limit', '256M');
+        ini_set('memory_limit', '128M');
 
         // Mata o script se ele demorar mais que 4 minutos, liberando o servidor
         set_time_limit(240);
