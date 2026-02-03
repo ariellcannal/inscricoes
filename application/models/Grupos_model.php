@@ -30,8 +30,8 @@ class Grupos_model extends SYS_Model
         $date_now = date('Y-m-d');
         $this->db->where('grp_ativo', '1');
         $this->db->where('FIND_IN_SET(grp_diaSemana,"' . date('w') . '")', null, false);
-        $this->db->where('grp_dataInicio <=', $date_now);
-        $this->db->where('grp_dataFim >=', $date_now);
+        $this->db->where("grp_dataInicio <= '{$date_now}' OR grp_dataInicio IS NULL", null, false);
+        $this->db->where("grp_dataFim >= '{$date_now}' OR grp_dataFim IS NULL", null, false);
         $this->db->where('ADDTIME(grp_horaInicio,"-01:00:00") <= "' . $time_now . '" AND ADDTIME(grp_horaFim,"01:00:00") >= "' . $time_now . '"', null, false);
         $this->db->limit(1);
         $r = $this->db->get('grupos');

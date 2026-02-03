@@ -1,4 +1,16 @@
 <?php $this->load->view('header', ['closeHead'=>false,'title'=>$grp['grp_nomePublico'].' - CANNAL Produções']);?>
+<?php
+$subtitulo = $grp['grp_encontros'].' encontros';
+if($grp['grp_dataInicio']!="" && $grp['grp_dataFim'] !=""){
+    $subtitulo .= 'entre '.date('d/m/Y',strtotime($grp['grp_dataInicio'])).' e '.date('d/m/Y',strtotime($grp['grp_dataFim']));
+}
+else if($grp['grp_dataInicio']!="" && $grp['grp_dataFim'] ==""){
+    $subtitulo .= ' a partir de '.date('d/m/Y',strtotime($grp['grp_dataInicio']));
+}
+else if($grp['grp_dataInicio']=="" && $grp['grp_dataFim'] !=""){
+    $subtitulo .= ' até '.date('d/m/Y',strtotime($grp['grp_dataFim']));
+}
+?>
 <meta property="og:url" content="<?php echo site_url('/inscricao/'.$grp['grp_slug'])?>" />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="<?php echo $grp['grp_nomePublico']?>" />
@@ -20,7 +32,7 @@
 
 	<main class="container">
 		<div class="alert alert-primary" role="alert">
-          <?php echo $grp['grp_encontros'].' encontros  entre '.date('d/m/Y',strtotime($grp['grp_dataInicio'])).' e '.date('d/m/Y',strtotime($grp['grp_dataFim']))?>. <?php echo $grp['grp_diaSemana'].', das '.$grp['grp_horaInicio'].' às '.$grp['grp_horaFim']?>.
+          <?php echo $subtitulo?>. <?php echo $grp['grp_diaSemana'].', das '.$grp['grp_horaInicio'].' às '.$grp['grp_horaFim']?>.
           <?php echo $grp['grp_descricao']!=''?'<br/>'.nl2br($grp['grp_descricao']):''?>
         </div>
 	<?php echo $conteudo?>

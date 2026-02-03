@@ -1,6 +1,12 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 setlocale(LC_ALL, 'pt_BR');
+
+$periodo = $grp['grp_encontros'] . ' encontros';
+if ($grp['grp_dataInicio'] != "" && $grp['grp_dataFim'] != "") {
+    $periodo .= ', entre ' . date('d/m/Y', strtotime($grp['grp_dataInicio'])) . ' e ' . date('d/m/Y', strtotime($grp['grp_dataFim']));
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $this->config->item('language')?>">
@@ -19,8 +25,7 @@ setlocale(LC_ALL, 'pt_BR');
 	</header>
 	<section>
 		<p>
-			Declaramos que <strong><?php echo ucwords($alu['alu_nome'])?></strong>, CPF <strong><?php echo $alu['alu_cpf']?></strong> participou do grupo
-			de estudo de "<strong><?php echo $grp['grp_nomePublico']?></strong>", com <?php echo $grp_coordenadores?>, no Grupo TAPA, por <?php echo $grp['grp_encontros']?> encontros, de <?php echo $grp['grp_dataInicio']?> até <?php echo $grp['grp_dataFim']?>, perfazendo uma carga total de <strong><?php echo $carga_horaria?> horas</strong>.
+			Declaramos que <strong><?php echo ucwords($alu['alu_nome'])?></strong>, CPF <strong><?php echo $alu['alu_cpf']?></strong> participou do grupo de estudo de "<strong><?php echo $grp['grp_nomePublico']?></strong>", com <?php echo $grp_coordenadores?>, por <?php echo $grp['grp_encontros']?> encontros<?php echo $periodo?>, perfazendo uma carga total de <strong><?php echo $carga_horaria?> horas</strong>.
 		</p>
 		<p>Sem mais,</p>
 	</section>

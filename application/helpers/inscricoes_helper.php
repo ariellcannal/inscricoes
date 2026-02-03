@@ -125,7 +125,9 @@ if (! function_exists('BI_inscricao_aluno')) {
         } else if ($grp_operadora = $ci->operadoras_model->getRow($grp['grp_operadora'])) {
             $opr->importArray($grp_operadora);
         } else {
-            $ci->logger->error('Operadora não localizada',['ALU_' . $alu_id]);
+            $ci->logger->error('Operadora não localizada', [
+                'ALU_' . $alu_id
+            ]);
             $xcrud->set_notify('Operadora indisponível', 'error', true);
             return false;
         }
@@ -133,7 +135,7 @@ if (! function_exists('BI_inscricao_aluno')) {
         $ins_tempData['fop'] = $postdata->get('fop');
         $fop = explode('_', $postdata->get('fop'));
         $postdata->set('ins_forma', $fop[0]);
-        
+
         // Processar taxas adicionais
         $taxasPostdata = [];
         foreach ($postdata->to_array() as $k => $v) {
@@ -141,11 +143,11 @@ if (! function_exists('BI_inscricao_aluno')) {
                 $taxasPostdata[$k] = $v;
             }
         }
-        
-        if (!empty($taxasPostdata)) {
+
+        if (! empty($taxasPostdata)) {
             $ins_tempData['taxas'] = $taxasPostdata;
         }
-        
+
         $postdata->set('ins_tempData', json_encode($ins_tempData));
     }
 }
@@ -272,8 +274,8 @@ if (! function_exists('enviar_declaracao')) {
             $vars['grp_coordenadores'][] = $row['usr_nome'];
         }
         $vars['grp_coordenadores'] = implode(' e ', $vars['grp_coordenadores']);
-        $vars['grp']['grp_dataInicio'] = date('d/m/Y', strtotime($vars['grp']['grp_dataInicio']));
-        $vars['grp']['grp_dataFim'] = date('d/m/Y', strtotime($vars['grp']['grp_dataFim']));
+        $vars['grp']['grp_dataInicio'] = ($vars['grp']['grp_dataInicio'] != "") ? date('d/m/Y', strtotime($vars['grp']['grp_dataInicio'])) : "s";
+        $vars['grp']['grp_dataFim'] = ($vars['grp']['grp_dataFim'] != "") ? date('d/m/Y', strtotime($vars['grp']['grp_dataFim'])) : "s";
         $vars['carga_horaria'] = strtotime($vars['grp']['grp_horaFim']) - strtotime($vars['grp']['grp_horaInicio']);
         $entrada = $vars['grp']['grp_horaInicio'];
         $saida = $vars['grp']['grp_horaFim'];
@@ -351,7 +353,7 @@ if (! function_exists('whatsAppMsg')) {
         }
         $ins['alu_celular'] = preg_replace('/\D+/', '', $ins['alu_celular']);
 
-        //$url = "https://web.whatsapp.com/send?phone=55" . $ins['alu_celular'] . "&text=" . rawurlencode($msg);
+        // $url = "https://web.whatsapp.com/send?phone=55" . $ins['alu_celular'] . "&text=" . rawurlencode($msg);
         $url = "whatsapp://send?phone=55" . $ins['alu_celular'] . "&text=" . rawurlencode($msg);
         // $xcrud->set_notify($msg, 'error', true);
         $out = '<script type="text/javascript">';

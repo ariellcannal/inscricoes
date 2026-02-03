@@ -1,6 +1,17 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 $this->load->view('header');
+
+$subtitulo = $grp['grp_encontros'].' encontros';
+if($grp['grp_dataInicio']!="" && $grp['grp_dataFim'] !=""){
+    $subtitulo .= 'entre '.date('d/m/Y',strtotime($grp['grp_dataInicio'])).' e '.date('d/m/Y',strtotime($grp['grp_dataFim']));
+}
+else if($grp['grp_dataInicio']!="" && $grp['grp_dataFim'] ==""){
+    $subtitulo .= ' a partir de '.date('d/m/Y',strtotime($grp['grp_dataInicio']));
+}
+else if($grp['grp_dataInicio']=="" && $grp['grp_dataFim'] !=""){
+    $subtitulo .= ' até '.date('d/m/Y',strtotime($grp['grp_dataFim']));
+}
 ?>
 <body class="bg-light">
     <div class="container">
@@ -12,7 +23,7 @@ $this->load->view('header');
               </th>
             </tr>
             <tr>
-            	<th><?php echo $grp['grp_encontros'].' encontros  entre '.date('d/m/Y',strtotime($grp['grp_dataInicio'])).' e '.date('d/m/Y',strtotime($grp['grp_dataFim']))?></th>
+            	<th><?php echo $subtitulo?></th>
             	<th rowspan="2" style="width: 40%; vertical-align: top;">Data:</th>
             </tr>
             <tr>
