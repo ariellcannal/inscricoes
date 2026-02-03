@@ -43,21 +43,23 @@ $taxasPosteriores = json_decode($this->get_var('taxasPosteriores'), true) ?: [];
     			<?php echo $this->open_label_tag('a.alu_celular','label').$this->fields_output['a.alu_celular']['label'].$this->close_tag('label')?>
     			<?php echo $this->fields_output['a.alu_celular']['field']?>
 			</div>
-			<?php if($this->validation_required['a.alu_drt'] !=""):?>
+			<?php if(array_key_exists('a.alu_drt', $this->validation_required) && $this->validation_required['a.alu_drt'] !=""):?>
     			<div class="col-md-6 mb-3 form-group">
         			<?php echo $this->open_label_tag('a.alu_drt','label').$this->fields_output['a.alu_drt']['label'].$this->close_tag('label')?>
         			<?php echo $this->fields_output['a.alu_drt']['field']?>
     			</div>
     		<?php endif;?>
 		</div>
-		<div class="row">
-			<div class="col-md-12 mb-3 form-group">
-    			<?php echo $this->open_label_tag('a.alu_cv','label').$this->fields_output['a.alu_cv']['label'].$this->close_tag('label')?>
-    			<div id="cv_wrapper">
-    			<?php echo $this->fields_output['a.alu_cv']['field']?>
+		<?php if(array_key_exists('a.alu_cv', $this->validation_required) && $this->validation_required['a.alu_cv'] !=""):?>
+    		<div class="row">
+    			<div class="col-md-12 mb-3 form-group">
+        			<?php echo $this->open_label_tag('a.alu_cv','label').$this->fields_output['a.alu_cv']['label'].$this->close_tag('label')?>
+        			<div id="cv_wrapper">
+        			<?php echo $this->fields_output['a.alu_cv']['field']?>
+        			</div>
     			</div>
-			</div>
-		</div>
+    		</div>
+		<?php endif;?>
 	</div>
 	<div class="col-md-6">
 		<div class="row">
