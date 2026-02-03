@@ -42,6 +42,7 @@ class Grupos extends SYS_Controller
         $xcrud->label('grp_horaFim', 'Hora Fim');
         $xcrud->label('grp_processoSeletivo', 'Processo Seletivo?');
         $xcrud->label('grp_linkWhats', 'Link do Grupo no WhatsApp');
+        $xcrud->label('grp_emailFaleConosco', 'E-mail Fale Conosco');
         $xcrud->label('grp_idFaturaCartao', 'Identificação na Fatura');
         $xcrud->label('grp_drtObrigatorio', 'DRT Obrigatório');
         $xcrud->label('grp_exibeSite', 'Exibir no Site');
@@ -52,7 +53,7 @@ class Grupos extends SYS_Controller
         $xcrud->label('grp_analytics', 'Google Analytics');
 
         $xcrud->columns('grp_id,grp_nome,grp_maximoInscricoes,grp_encontros,grp_dataInicio,grp_dataFim,grp_diaSemana,grp_horaInicio,grp_horaFim,grp_inscricoesAbertas,grp_exibeSite,grp_operadora,grp_ativo');
-        $xcrud->fields('grp_imagem,grp_nome,grp_nomePublico,grp_slug,grp_dataAulaAberta,grp_dataInicio,grp_dataFim,grp_diaSemana,grp_horaInicio,grp_horaFim,grp_maximoInscricoes,grp_exibeSite,grp_repasseAtivado,grp_ativo,grp_inscricoesAbertas,grp_processoSeletivo,grp_drtObrigatorio,grp_encontros,grp_idFaturaCartao,grp_coordenadores,grp_descricao,grp_descricaoDetalhes,grp_linkWhats,grp_operadora,grp_pixel,grp_analytics', false, 'Dados Principais');
+        $xcrud->fields('grp_imagem,grp_nome,grp_nomePublico,grp_slug,grp_dataAulaAberta,grp_dataInicio,grp_dataFim,grp_diaSemana,grp_horaInicio,grp_horaFim,grp_maximoInscricoes,grp_exibeSite,grp_repasseAtivado,grp_ativo,grp_inscricoesAbertas,grp_processoSeletivo,grp_drtObrigatorio,grp_encontros,grp_idFaturaCartao,grp_coordenadores,grp_descricao,grp_descricaoDetalhes,grp_linkWhats,grp_emailFaleConosco,grp_operadora,grp_pixel,grp_analytics', false, 'Dados Principais');
 
         $semana[1] = 'Segundas';
         $semana[2] = 'Terças';
@@ -64,6 +65,7 @@ class Grupos extends SYS_Controller
         $xcrud->change_type('grp_diaSemana', 'multiselect', null, $semana);
 
         $xcrud->change_type('grp_linkWhats', 'text');
+        $xcrud->change_type('grp_emailFaleConosco', 'email');
 
         $xcrud->change_type('grp_imagem', 'image', '', array(
             'width' => 1600,

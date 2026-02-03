@@ -2,7 +2,7 @@
 <?php
 $subtitulo = $grp['grp_encontros'].' encontros';
 if($grp['grp_dataInicio']!="" && $grp['grp_dataFim'] !=""){
-    $subtitulo .= 'entre '.date('d/m/Y',strtotime($grp['grp_dataInicio'])).' e '.date('d/m/Y',strtotime($grp['grp_dataFim']));
+    $subtitulo .= ' entre '.date('d/m/Y',strtotime($grp['grp_dataInicio'])).' e '.date('d/m/Y',strtotime($grp['grp_dataFim']));
 }
 else if($grp['grp_dataInicio']!="" && $grp['grp_dataFim'] ==""){
     $subtitulo .= ' a partir de '.date('d/m/Y',strtotime($grp['grp_dataInicio']));
@@ -34,6 +34,7 @@ else if($grp['grp_dataInicio']=="" && $grp['grp_dataFim'] !=""){
 		<div class="alert alert-primary" role="alert">
           <?php echo $subtitulo?>. <?php echo $grp['grp_diaSemana'].', das '.$grp['grp_horaInicio'].' às '.$grp['grp_horaFim']?>.
           <?php echo $grp['grp_descricao']!=''?'<br/>'.nl2br($grp['grp_descricao']):''?>
+          <?php echo $grp['grp_emailFaleConosco']!=''?'<br/>'.'Se precisa de maiores informações você pode nos contatar através do e-mail <a href="mailto:'.$grp['grp_emailFaleConosco'].'">'.$grp['grp_emailFaleConosco'].'</a>':''?>
         </div>
 	<?php echo $conteudo?>
 	</main>

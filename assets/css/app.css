@@ -220,3 +220,6 @@ body {
 .inscricao #rec_cartaoValidade{
 	display: none;
 }
+.inscricao a{
+	text-decoration: underline;
+}
