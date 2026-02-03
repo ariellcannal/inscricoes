@@ -313,7 +313,7 @@ class Inscricoes extends SYS_Controller
     public function inscricao(?string $grp_id_slug = null, ?int $ins_id = null): void
     {
         $this->assets->css('../../assets/plugins/card/card.css');
-        $this->assets->js('../../        $this->assets->js('card.js');
+        $this->assets->js('card.js');
         $this->assets->js('inscricoes_aluno.js');
         $this->assets->js('tracking.js');
         $this->assets->inline('recaptcha', config_item('recaptcha_key'));
