@@ -14,8 +14,7 @@ $taxasPosteriores = json_decode($this->get_var('taxasPosteriores'), true) ?: [];
 	<h4 class="col-md-12">Dados do aluno</h4>
 </div>
 <div class="row inscricao_form">
-	<input type="hidden" id="grp" value="<?php echo $this->get_var('grp')?>">
-	<input type="hidden" id="grp_slug" value="<?php echo $this->get_var('grp_slug')?>">
+	<input type="hidden" id="grp" value="<?php echo $this->get_var('grp')?>"> <input type="hidden" id="grp_slug" value="<?php echo $this->get_var('grp_slug')?>">
 	<div class="col-md-6">
 		<div class="mb-3 form-group">
 			<?php echo $this->open_label_tag('a.alu_cpf','label').$this->fields_output['a.alu_cpf']['label'].$this->close_tag('label')?> <small id="alu_cpf_erro">CPF inválido</small>
@@ -44,10 +43,12 @@ $taxasPosteriores = json_decode($this->get_var('taxasPosteriores'), true) ?: [];
     			<?php echo $this->open_label_tag('a.alu_celular','label').$this->fields_output['a.alu_celular']['label'].$this->close_tag('label')?>
     			<?php echo $this->fields_output['a.alu_celular']['field']?>
 			</div>
-			<div class="col-md-6 mb-3 form-group">
-    			<?php echo $this->open_label_tag('a.alu_drt','label').$this->fields_output['a.alu_drt']['label'].$this->close_tag('label')?>
-    			<?php echo $this->fields_output['a.alu_drt']['field']?>
-			</div>
+			<?php if($this->validation_required['a.alu_drt'] !=""):?>
+    			<div class="col-md-6 mb-3 form-group">
+        			<?php echo $this->open_label_tag('a.alu_drt','label').$this->fields_output['a.alu_drt']['label'].$this->close_tag('label')?>
+        			<?php echo $this->fields_output['a.alu_drt']['field']?>
+    			</div>
+    		<?php endif;?>
 		</div>
 		<div class="row">
 			<div class="col-md-12 mb-3 form-group">
@@ -101,7 +102,7 @@ $taxasPosteriores = json_decode($this->get_var('taxasPosteriores'), true) ?: [];
 		</div>
 	</div>
 </div>
-<hr/>
+<hr />
 <!-- Seção de Pagamento do Curso -->
 <div class="row inscricao_form">
 	<h4 class="col-md-12 mt-3">
@@ -117,12 +118,12 @@ $taxasPosteriores = json_decode($this->get_var('taxasPosteriores'), true) ?: [];
         <?php echo $this->open_label_tag('inscricoes.fop','label').$this->fields_output['inscricoes.fop']['label'].$this->close_tag('label')?>
 		<?php echo $this->fields_output['inscricoes.fop']['field']?>
 		<?php
-        if(count($taxasPrimeiraParcela)){
-            foreach($taxasPrimeiraParcela as $taxa){
-                echo "<small>+ R$".number_format($taxa['gtx_valorTotal'],2,',')." referente a ".$taxa['gtx_descricao']."</small><br/>";
-            }
-        }
-        ?>
+if (count($taxasPrimeiraParcela)) {
+    foreach ($taxasPrimeiraParcela as $taxa) {
+        echo "<small>+ R$" . number_format($taxa['gtx_valorTotal'], 2, ',') . " referente a " . $taxa['gtx_descricao'] . "</small><br/>";
+    }
+}
+?>
 	</div>
 	<div class="mesmo_cartao col-md-6 form-group" style="display: none;">
 		<?php echo $this->open_label_tag('inscricoes.alu_cartoes','label').$this->fields_output['inscricoes.alu_cartoes']['label'].$this->close_tag('label')?><br>
@@ -165,60 +166,60 @@ $taxasPosteriores = json_decode($this->get_var('taxasPosteriores'), true) ?: [];
 	</div>
 </div>
 
-<?php 
+<?php
 // Taxas Adicionais (gtx_primeiraParcela = false)
-if (!empty($taxasPosteriores)) {
+if (! empty($taxasPosteriores)) {
     foreach ($taxasPosteriores as $taxa) {
         $prefix = 'taxa_' . $taxa['gtx_id'];
-?>
+        ?>
 <div class="row inscricao_form mt-4">
-    <h4 class="col-md-12">
+	<h4 class="col-md-12">
         Pagamento de <?php echo htmlspecialchars($taxa['gtx_descricao'] ?: $taxa['gtx_comentario']); ?><br>
-    </h4>
+	</h4>
 </div>
 
 <div class="row mb-3">
-    <div class="col-md-6 form-group">
+	<div class="col-md-6 form-group">
         <?php echo $this->open_label_tag('inscricoes.' . $prefix . '_fop','label').$this->fields_output['inscricoes.' . $prefix . '_fop']['label'].$this->close_tag('label')?>
         <?php echo $this->fields_output['inscricoes.' . $prefix . '_fop']['field']?>
     </div>
-    <div class="col-md-6 form-group taxa-mesmo-cartao-<?php echo $taxa['gtx_id']; ?>">
+	<div class="col-md-6 form-group taxa-mesmo-cartao-<?php echo $taxa['gtx_id']; ?>">
         <?php echo $this->open_label_tag('inscricoes.' . $prefix . '_alu_cartoes','label').$this->fields_output['inscricoes.' . $prefix . '_alu_cartoes']['label'].$this->close_tag('label')?>
         <?php echo $this->fields_output['inscricoes.' . $prefix . '_alu_cartoes']['field']?>
     </div>
 </div>
 
 <div class="row dados_cartao_<?php echo $prefix; ?>" style="display: none;">
-    <div class="col-md-12">
-        <h5 class="mt-3">Dados do Cartão de Crédito</h5>
-    </div>
-    <div class="col-md-8 row">
-        <div class="col-md-6 mb-3 form-group">
+	<div class="col-md-12">
+		<h5 class="mt-3">Dados do Cartão de Crédito</h5>
+	</div>
+	<div class="col-md-8 row">
+		<div class="col-md-6 mb-3 form-group">
             <?php echo $this->open_label_tag('inscricoes.' . $prefix . '_rec_cartaoNome','label').$this->fields_output['inscricoes.' . $prefix . '_rec_cartaoNome']['label'].$this->close_tag('label')?>
             <?php echo $this->fields_output['inscricoes.' . $prefix . '_rec_cartaoNome']['field']?>
         </div>
-        <div class="col-md-6 mb-3 form-group">
+		<div class="col-md-6 mb-3 form-group">
             <?php echo $this->open_label_tag('inscricoes.' . $prefix . '_rec_cartao','label').$this->fields_output['inscricoes.' . $prefix . '_rec_cartao']['label'].$this->close_tag('label')?>
             <?php echo $this->fields_output['inscricoes.' . $prefix . '_rec_cartao']['field']?>
         </div>
-        <div class="col-md-4 mb-3 form-group">
-            <label>Validade <small>(MM / AAAA)</small></label>
-            <div class="input-group">
+		<div class="col-md-4 mb-3 form-group">
+			<label>Validade <small>(MM / AAAA)</small></label>
+			<div class="input-group">
                 <?php echo $this->fields_output['inscricoes.' . $prefix . '_rec_cartaoValidadeMes']['field']?>
                 <?php echo $this->fields_output['inscricoes.' . $prefix . '_rec_cartaoValidadeAno']['field']?>
             </div>
-        </div>
-        <div class="col-md-2 mb-3 form-group">
+		</div>
+		<div class="col-md-2 mb-3 form-group">
             <?php echo $this->open_label_tag('inscricoes.' . $prefix . '_rec_cartaoCodigo','label').$this->fields_output['inscricoes.' . $prefix . '_rec_cartaoCodigo']['label'].$this->close_tag('label')?>
             <?php echo $this->fields_output['inscricoes.' . $prefix . '_rec_cartaoCodigo']['field']?>
         </div>
-        <div class="col-md-3 mb-3 form-group">
+		<div class="col-md-3 mb-3 form-group">
             <?php echo $this->open_label_tag('inscricoes.' . $prefix . '_rec_cartaoCPF','label').$this->fields_output['inscricoes.' . $prefix . '_rec_cartaoCPF']['label'].$this->close_tag('label')?>
             <?php echo $this->fields_output['inscricoes.' . $prefix . '_rec_cartaoCPF']['field']?>
         </div>
-    </div>
+	</div>
 </div>
-<?php 
+<?php
     }
 }
 ?>
