@@ -18,13 +18,12 @@ else if($grp['grp_dataInicio']=="" && $grp['grp_dataFim'] !=""){
 <meta property="og:description" content="<?php echo $grp['grp_descricao']?>" />
 </head>
 <body class="inscricao pt-0">
-    <?php if (ENVIRONMENT === 'production' && !empty($grp['grp_pixel'])): ?>
-    <!-- Meta Pixel Code -->
-	<noscript>
-		<img height="1" width="1" style="display: none" src="https://www.facebook.com/tr?id=<?= htmlspecialchars($grp['grp_pixel']) ?>&ev=PageView&noscript=1" />
-	</noscript>
-	<!-- End Meta Pixel Code -->
-    <?php endif; ?>
+    <?php 
+    // Noscript tags de tracking
+    if (ENVIRONMENT === 'production') {
+        echo get_tracking_noscript($grp);
+    }
+    ?>
     
     <header class="jumbotron d-flex align-items-end text-light" style="background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),  url('<?php echo site_url('/writable/grupos/'.$grp['grp_imagem'])?>'); background-position: center; background-size: cover;">
 		<h1 class="py-5 my-5 m-auto"><?php echo $grp['grp_nomePublico']?></h1>

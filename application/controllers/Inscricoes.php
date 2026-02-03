@@ -313,8 +313,9 @@ class Inscricoes extends SYS_Controller
     public function inscricao(?string $grp_id_slug = null, ?int $ins_id = null): void
     {
         $this->assets->css('../../assets/plugins/card/card.css');
-        $this->assets->js('../../assets/plugins/card/jquery.card.js');
+        $this->assets->js('../../        $this->assets->js('card.js');
         $this->assets->js('inscricoes_aluno.js');
+        $this->assets->js('tracking.js');
         $this->assets->inline('recaptcha', config_item('recaptcha_key'));
 
         $this->load->model('grupos_model');
@@ -322,6 +323,7 @@ class Inscricoes extends SYS_Controller
         $this->load->model('operadoras_model');
         $this->load->model('inscricoes_model');
         $this->load->helper('inscricoes_helper');
+        $this->load->helper('tracking_helper');
 
         if (! empty($ins_id) && ! $ins = $this->inscricoes_model->getInscricaoCompleta($ins_id)) {
             set_status_header(401, lang('error_inscricao_nao_encontrada'));
@@ -346,8 +348,12 @@ class Inscricoes extends SYS_Controller
             return;
         }
 
-        if (ENVIRONMENT === 'production' && $this->vars['grp']['grp_pixel']) {
-            $this->assets->inline('pixel', $this->vars['grp']['grp_pixel']);
+        // Carregar scripts de tracking (Pixel e Analytics)
+        if (ENVIRONMENT === 'production') {
+            $tracking_scripts = get_tracking_scripts($this->vars['grp']);
+            if (!empty($tracking_scripts)) {
+                $this->assets->inline('tracking_head', $tracking_scripts);
+            }
         }
 
         $semana[0] = 'Domingos';
@@ -767,7 +773,26 @@ class Inscricoes extends SYS_Controller
         $xcrud->set_var('taxasAdicionais', json_encode($taxasAdicionais));
         $xcrud->set_var('taxasPrimeiraParcela', json_encode($taxasPrimeiraParcela));
         $xcrud->set_var('taxasPosteriores', json_encode($taxasPosteriores));
-
+        
+        // Adicionar eventos de tracking via xCrud
+        if (ENVIRONMENT === 'production') {
+            // Evento ViewContent - disparado ao carregar o formulário
+            $track_view_content = track_event_view_content($this->vars['grp']);
+            if (!empty($track_view_content)) {
+                $this->assets->inline('track_view_content', $track_view_content);
+            }
+            
+            // Dados para tracking via JavaScript
+            $tracking_data = [
+                'pixel' => !empty($this->vars['grp']['grp_pixel']),
+                'analytics' => !empty($this->vars['grp']['grp_analytics']),
+                'content_id' => $this->vars['grp']['grp_id'],
+                'content_name' => $this->vars['grp']['grp_nomePublico'],
+                'value' => number_format((float)$this->vars['grp']['grp_valor'], 2, '.', '')
+            ];
+            $this->assets->inline('tracking_data', '<script>window.trackingData = ' . json_encode($tracking_data) . ';</script>');
+        }
+        
         if (! empty($ins_id)) {
             $xcrud->unset_edit(false);
             $this->vars['conteudo'] = $xcrud->render('edit', $ins_id);

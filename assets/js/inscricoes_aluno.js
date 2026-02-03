@@ -1,10 +1,7 @@
 var current_task = $('.xcrud-ajax .xcrud-data[name="task"]').val();
 
 function checkCPF() {
-	if (App.environment == 'production' && typeof viewContent !== 'undefined' && !viewContent) {
-		viewContent = true;
-		fbq('track', 'ViewContent');
-	}
+	// ViewContent agora é disparado via tracking.js
 	cpf = $('#alu_cpf').val();
 	grp = $('#grp').val();
 	if (cpf != "") {
@@ -40,10 +37,7 @@ function checkCPF() {
 					Xcrud.hide_progress($(container).closest(".xcrud"));
 				},
 				success: function(aluno, status, jqXHR) {
-					if (App.environment == 'production' && typeof InitiateCheckout !== 'undefined' && !InitiateCheckout) {
-						InitiateCheckout = true;
-						fbq('track', 'InitiateCheckout');
-					}
+					// InitiateCheckout agora é disparado via tracking.js
 					$('input,select').removeAttr('disabled');
 					$('.xcrud-action').show();
 					if (aluno !== null) {
@@ -161,11 +155,7 @@ $(document).on("xcrudinit", function() {
 });
 
 function checkFOP() {
-	if (App.environment == 'production' && typeof AddPaymentInfo !== 'undefined' && !AddPaymentInfo) {
-		AddPaymentInfo = true;
-		fbq('track', 'AddPaymentInfo');
-	}
-
+	// AddPaymentInfo agora é disparado via tracking.js
 	tem_parcelamento = $('#fop').val().split("_")[2];
 	if (tem_parcelamento == 1) {
 		$('.mesmo_cartao').show(100, selectCartao);

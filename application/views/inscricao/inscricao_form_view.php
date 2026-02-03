@@ -5,34 +5,11 @@ if ($this->get_var('custom_head') != false) {
     require (XCRUD_PATH . '/' . Xcrud_config::$themes_path . $this->get_var('custom_head'));
 }
 
-if (ENVIRONMENT === 'production' && ! empty($grp['grp_pixel'])) :
-if ($transacao instanceof Transacao) {
-    $total = (float)$transacao->getValorBruto();
+// Evento Purchase - usar helper de tracking
+if (ENVIRONMENT === 'production' && $transacao instanceof Transacao) {
+    $transaction_id = $transacao->getOperadoraId() ?: $transacao->getId();
+    echo track_event_purchase($grp, $transacao, $transaction_id);
 }
-else{
-    $total = 0.0;
-}
-$produtos = [
-    ['id'=>$grp['grp_id'],'quantity'=>1]
-];
-?>
-<script>
-  fbq('track', 'Purchase', {
-    value: <?php echo number_format($total, 2, '.', ''); ?>,
-    currency: 'BRL',
-    contents: <?php echo json_encode($produtos); ?>,
-    content_type: 'product'
-  });
-</script>
-
-<noscript>
-    <img height="1" width="1" style="display:none"
-         src="https://www.facebook.com/tr?id=<?php echo $grp['grp_pixel']; ?>&ev=Purchase&cd[value]=<?php echo number_format($total, 2, '.', ''); ?>&cd[currency]=BRL&cd[content_type]=product&cd[contents]=<?php echo urlencode(json_encode($produtos)); ?>&noscript=1" />
-</noscript>
-
-<!-- End Meta Pixel Code -->
-<?php
-endif;
 
 if ($processoSeletivo && ! $capture) {
     ?>
