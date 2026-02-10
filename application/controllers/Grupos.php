@@ -71,7 +71,7 @@ class Grupos extends SYS_Controller
             'width' => 1600,
             'height' => 1200,
             'crop' => false,
-            'path' => $_SERVER['DOCUMENT_ROOT'] .DIR_IMAGEM_GRUPOS
+            'path' => $_SERVER['DOCUMENT_ROOT'] . DIR_IMAGEM_GRUPOS
         ));
 
         $xcrud->pass_default('grp_operadora', $this->operadoras_model->getDefault()['opr_nome'], 'create');
@@ -119,6 +119,8 @@ class Grupos extends SYS_Controller
         $dist->label('totalARepassar', 'A Repassar');
 
         $dist->set_var('after_task', 'create');
+
+        $dist->where('dst_forma IS NULL');
 
         $dist->columns('dst_usuario,dst_porcentagem,totalGrupo,totalRepassado,totalARepassar');
         $dist->fields('dst_usuario,dst_porcentagem');
@@ -183,36 +185,36 @@ class Grupos extends SYS_Controller
         $gfp->unset_search();
         $gfp->unset_pagination();
         $gfp->unset_limitlist();
-        
+
         $dist_gfp = $gfp->nested_table('Distribuição de Repasse', 'gfp_id', 'grupos_distribuicao', 'dst_forma');
         $dist_gfp->table_name('Distribuição de Repasse da Forma');
-        
+
         $dist_gfp->subselect('totalGrupo', 'SELECT SUM(rec_valorLiquido) FROM recebiveis JOIN inscricoes ON ins_id = rec_inscricao WHERE ins_grupo = {dst_grupo}');
         $dist_gfp->subselect('totalRepassado', 'SELECT SUM(rre_valor) FROM recebiveis_repasses JOIN recebiveis ON rre_recebivel = rec_id JOIN inscricoes ON ins_id = rec_inscricao WHERE rre_usuario = {dst_usuario} AND ins_grupo = {dst_grupo}');
         $dist_gfp->subselect('totalARepassar', '(SELECT SUM(rec_valorLiquido*({dst_porcentagem}/100)) FROM recebiveis JOIN inscricoes ON ins_id = rec_inscricao WHERE ins_grupo = {dst_grupo})-(SELECT SUM(rre_valor) FROM recebiveis_repasses JOIN recebiveis ON rre_recebivel = rec_id JOIN inscricoes ON ins_id = rec_inscricao WHERE rre_usuario = {dst_usuario} AND ins_grupo = {dst_grupo})');
-        
+
         $dist_gfp->label('dst_usuario', 'Usuário');
         $dist_gfp->label('dst_porcentagem', 'Porcentagem');
         $dist_gfp->label('totalGrupo', 'Faturamento Líquido');
         $dist_gfp->label('totalRepassado', 'Repassado');
         $dist_gfp->label('totalARepassar', 'A Repassar');
-        
+
         $dist_gfp->set_var('after_task', 'create');
-        
+
         $dist_gfp->columns('dst_usuario,dst_porcentagem,totalGrupo,totalRepassado,totalARepassar');
         $dist_gfp->fields('dst_usuario,dst_porcentagem');
         $dist_gfp->relation('dst_usuario', 'usuarios', 'usr_id', 'usr_nome', 'usr_recebeRepasse = 1');
         $dist_gfp->sum('dst_porcentagem,totalRepassado,totalARepassar');
-        
+
         $dist_gfp->change_type('totalGrupo,totalRepassado,totalARepassar', 'price', null, array(
             'prefix' => 'R$ ',
             'separator' => '.',
             'point' => ','
         ));
-        
+
         $dist_gfp->before_insert('callback_set_grupo', 'grupos_helper.php');
         $dist_gfp->before_update('callback_set_grupo', 'grupos_helper.php');
-        
+
         $dist_gfp->unset_print();
         $dist_gfp->unset_csv();
         $dist_gfp->unset_view();

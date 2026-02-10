@@ -38,9 +38,12 @@ class Recebiveis_model extends SYS_Model
             ];
         }
 
+        /* VERIFICA SE TEM DISTRIBUIÇÃO ESPECÍFICA PARA A FORMA DE PAGAMENTO */
         $this->db->where('dst_forma', $rec['ins_forma']);
         if (! $dst = $this->db->get('grupos_distribuicao')->result_array()) {
+            /* SE NÃO TEM DISTRIBUIÇÃO ESPECÍFICA PARA A FORMA DE PAGAMENTO, UTILIZA A DISTRIBUIÇÃO DO GRUPO */
             $this->db->where('dst_grupo', $rec['ins_grupo']);
+            $this->db->where('dst_forma IS NULL', null, false);
             $dst = $this->db->get('grupos_distribuicao')->result_array();
         }
 
@@ -97,13 +100,16 @@ class Recebiveis_model extends SYS_Model
             /* repasses já inseridos */
             return false;
         }
-        
+
+        /* VERIFICA SE TEM DISTRIBUIÇÃO ESPECÍFICA PARA A FORMA DE PAGAMENTO */
         $this->db->where('dst_forma', $rec['ins_forma']);
         if (! $dst = $this->db->get('grupos_distribuicao')->result_array()) {
+            /* SE NÃO TEM DISTRIBUIÇÃO ESPECÍFICA PARA A FORMA DE PAGAMENTO, UTILIZA A DISTRIBUIÇÃO DO GRUPO */
             $this->db->where('dst_grupo', $rec['ins_grupo']);
+            $this->db->where('dst_forma IS NULL', null, false);
             $dst = $this->db->get('grupos_distribuicao')->result_array();
         }
-        
+
         $soma = 0;
         foreach ($dst as $row) {
             $valor_rep = $rec['rec_valorLiquido'] * ($row['dst_porcentagem'] / 100);
