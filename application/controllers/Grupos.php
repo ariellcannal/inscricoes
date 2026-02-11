@@ -12,7 +12,10 @@ class Grupos extends SYS_Controller
     public function index()
     {
         $this->checkLogin();
+        $this->assets->js('inscricoes_admin.js');
+
         $this->load->model('operadoras_model');
+        $this->load->model('grupos_model');
 
         $xcrud = xcrud_get_instance();
         $xcrud->table('grupos');
@@ -94,8 +97,7 @@ class Grupos extends SYS_Controller
 
         $xcrud->unset_print();
         $xcrud->unset_csv();
-        $xcrud->unset_view();
-
+        
         $xcrud->before_update('BU_grupo', 'grupos_helper.php');
         $xcrud->before_insert('BI_grupo', 'grupos_helper.php');
         $xcrud->after_clone('AC_grupo', 'grupos_helper.php');
@@ -105,6 +107,297 @@ class Grupos extends SYS_Controller
         $xcrud->order_by('grp_nome', 'ASC');
         $xcrud->no_editor('grp_descricao,grp_descricaoDetalhes');
 
+        /*
+         * INSCRIÇÕES
+         */
+        $ins = $xcrud->nested_table('Inscrições', 'grp_id', 'inscricoes', 'ins_grupo');
+        $ins->table_name('Inscrições');
+
+        $ins->set_var('after_task', 'list');
+
+        $ins->set_var('custom_head', '/inscricao/modal_whatsAppMsg.php');
+
+        $ins->set_var('replace_title', '#{ins_id}');
+
+        $ins->subselect('totalRecebido', 'SELECT IFNULL(SUM(otr_valorBruto),0) FROM operadoras_transacoes WHERE otr_inscricao = {ins_id} AND otr_confirmada = 1');
+        $ins->subselect('transacaoConfirmada', 'SELECT IFNULL(otr_confirmada,0) FROM operadoras_transacoes WHERE otr_inscricao = {ins_id} ORDER BY otr_confirmada DESC LIMIT 1');
+
+        $ins->label('ins_grupo', 'Grupo');
+        $ins->label('ins_aluno', 'Aluno');
+        $ins->label('ins_status', 'Status');
+        $ins->label('ins_data', 'Data');
+        $ins->label('ins_valorModulo', 'Valor Módulo');
+        $ins->label('ins_valorDesconto', 'Desconto');
+        $ins->label('ins_valorDevido', 'Saldo');
+        $ins->label('ins_valorTotalPago', 'Pago');
+        $ins->label('ins_motivoDesconto', 'Motivo do Desconto');
+        $ins->label('ins_valorDevido', 'Valor Devido');
+        $ins->label('ins_comentario', 'Comentário');
+        $ins->label('ins_IP', 'IP Inscrição');
+        $ins->label('ins_forma', 'Forma');
+        $ins->label('alunos.alu_nome', 'Nome Completo');
+        $ins->label('alunos.alu_nomeArtistico', 'Nome Artístico');
+        $ins->label('alunos.alu_nascimento', 'Data de Nascimento');
+        $ins->label('alunos.alu_drt', 'DRT');
+        $ins->label('alunos.alu_email', 'E-mail');
+        $ins->label('alunos.alu_cpf', 'CPF');
+        $ins->label('alunos.alu_cv', 'Currículo');
+        $ins->label('alunos.alu_celular', 'Celular');
+        $ins->label('grupos.whatsGrupo', 'Convidar P/ Whats');
+        $ins->label('ins_user', 'Usuário');
+        $ins->label('totalRecebido', 'Total Recebido');
+        $ins->label('ins_id', 'ID');
+        $ins->label('ins_tempData', 'Temp');
+
+        $ins->join('ins_aluno', 'alunos', 'alu_id', false, true);
+        $ins->join('ins_grupo', 'grupos', 'grp_id', false, true);
+
+        $ins->validation_required('ins_forma', 1);
+
+        $ativos = $this->grupos_model->getAtivos();
+        if ($ativos) {
+            foreach ($ativos as $g) {
+                $g_ativos[$g['grp_nome']] = 'ins_grupo = ' . $g['grp_id'];
+                $ids[] = $g['grp_id'];
+            }
+            $filtro['Grupos Ativos'] = 'ins_grupo IN (' . implode(',', $ids) . ')';
+            $ins->custom_filter('esquerda', array_merge($filtro, $g_ativos), 'Grupos Ativos');
+        }
+
+        $ins->disabled('ins_id,ins_IP,ins_data,ins_tempData');
+        $ins->disabled('ins_grupo,ins_aluno', 'edit');
+
+        $ins->highlight_row('ins_valorModulo', '=', '0', null, 'table-info');
+        $ins->highlight_row('ins_valorDevido', '>', '0', null, 'table-warning');
+        $ins->highlight_row('ins_valorDevido', '<=', '0', null, 'table-success');
+        $ins->highlight_row('ins_status', '=', 'Cancelada', null, 'table-danger');
+
+        $ins->columns('ins_id,ins_status,ins_grupo,ins_data,alunos.alu_nomeArtistico,alunos.alu_email,alunos.alu_celular,ins_forma,ins_valorDesconto,ins_motivoDesconto,ins_valorModulo,ins_valorTotalPago,ins_valorDevido');
+        $ins->sum('ins_valorTotalPago,ins_valorModulo,ins_valorDevido');
+
+        $ins->fields('ins_grupo,ins_forma,ins_aluno,ins_valorDesconto,ins_motivoDesconto,ins_comentario', null, null, 'create');
+        $ins->fields('ins_id,ins_grupo,ins_aluno,ins_status,ins_grupo,ins_forma,ins_valorDesconto,ins_motivoDesconto,ins_comentario,ins_IP,ins_data,ins_tempData', null, null, 'edit');
+
+        $ins->custom_button('#', 'Mensagem', 'btn-icon fab fa-whatsapp', 'btn btn-sm btn-info', [
+            'data-bs-toggle' => 'modal',
+            'data-bs-target' => '#whatsAppMsg'
+        ]);
+
+        $ins->create_action('reenviar_confirmacao', 'reenviar_confirmacao', 'inscricoes_helper.php', 'fas fa-check-double');
+        $ins->button('#', "Reenviar Confirmação", 'fas fa-check-double', 'btn btn-info xcrud-action', [
+            'data-primary' => '{ins_id}',
+            'data-task' => 'action',
+            'data-action' => 'reenviar_confirmacao'
+        ], [
+            [
+                'ins_status',
+                '=',
+                'Confirmada'
+            ]
+        ]);
+        $ins->create_action('whatsAppMsg', 'whatsAppMsg', 'inscricoes_helper.php', 'fab fa-whatsapp');
+        $ins->button('#', "Enviar Mensagem", 'fab fa-whatsapp', 'btn btn-info xcrud-action whatsAppMsgRow', [
+            'data-primary' => '{ins_id}',
+            'data-task' => 'action',
+            'data-action' => 'whatsAppMsg',
+            'data-msg' => ''
+        ]);
+
+        $ins->create_action('solicitar_aprovacao_admin', 'solicitar_aprovacao_admin', 'inscricoes_helper.php', 'fa fa-envelope');
+        $ins->button('#', "Solicitar Aprovação", 'fa fa-envelope', 'btn btn-info xcrud-action', [
+            'data-primary' => '{ins_id}',
+            'data-task' => 'action',
+            'data-action' => 'solicitar_aprovacao_admin'
+        ], [
+            [
+                'ins_status',
+                '=',
+                'Confirmada'
+            ],
+            [
+                'ins_aprovada',
+                '=',
+                ''
+            ],
+            [
+                'grupos.grp_processoSeletivo',
+                '=',
+                '1'
+            ]
+        ]);
+
+        $ins->create_action('aprovar_admin', 'aprovar_admin', 'inscricoes_helper.php', 'fas fa-thumbs-up');
+        $ins->button('#', "Aprovar", 'fas fa-thumbs-up', 'btn btn-info xcrud-action', [
+            'data-primary' => '{ins_id}',
+            'data-task' => 'action',
+            'data-action' => 'aprovar_admin',
+            'data-confirm' => 'Deseja aprovar {alunos.alu_nomeArtistico}, processar o pagamento e enviar a notificação para o e-mail do aluno?'
+        ], [
+            [
+                'ins_status',
+                '=',
+                'Confirmada'
+            ],
+            [
+                'ins_aprovada',
+                '=',
+                ''
+            ],
+            [
+                'grupos.grp_processoSeletivo',
+                '=',
+                '1'
+            ]
+        ]);
+
+        $ins->create_action('enviar_declaracao', 'enviar_declaracao', 'inscricoes_helper.php', 'fa fa-envelope');
+        $ins->button('#', "Enviar declaração", 'fas fa-file', 'btn btn-default btn-sm btn-info xcrud-action', [
+            'data-primary' => '{ins_id}',
+            'data-task' => 'action',
+            'data-action' => 'enviar_declaracao',
+            'data-confirm' => 'Confirma o envio dessa declaração para {alunos.alu_nomeArtistico}'
+        ], [
+            [
+                'grupos.grp_dataFim',
+                '<=',
+                date('Y-m-d')
+            ]
+        ]);
+
+        $ins->create_action('sincronizarInscricao', 'sincronizarInscricao', 'inscricoes_helper.php', 'fas fa-sync');
+        $ins->button('#', "Atualizar Totais", 'fas fa-sync', 'btn btn-info xcrud-action', [
+            'data-primary' => '{ins_id}',
+            'data-task' => 'action',
+            'data-action' => 'sincronizarInscricao'
+        ]);
+
+        $ins->relation('ins_grupo', 'grupos', 'grp_id', 'grp_nome', 'grp_ativo=1');
+        $ins->relation('ins_forma', 'grupos_formas', 'gfp_id', [
+            'gfp_valorTotal',
+            'gfp_comentario'
+        ], null, null, null, ' ', null, null, 'gfp_grupo', 'ins_grupo');
+        $ins->relation('ins_aluno', 'alunos', 'alu_id', 'alu_nomeArtistico');
+
+        $ins->change_type('ins_valorTotalPago,ins_valorModulo,ins_valorDevido,ins_valorDesconto', 'price', null, array(
+            'decimals' => '2',
+            'separator' => '.',
+            'point' => ','
+        ));
+        $ins->change_type('ins_motivoDesconto,ins_comentario', 'text');
+        $ins->change_type('ins_tempData', 'textarea');
+
+        $ins->unset_print();
+        $ins->unset_csv();
+        $ins->unset_view();
+        $ins->unset_numbers(false);
+
+        $ins->order_by('ins_grupo', 'ASC');
+        $ins->order_by('ins_valorModulo', 'DESC');
+        $ins->order_by('ins_valorDevido', 'DESC');
+        $ins->order_by('ins_valorTotalPago', 'ASC');
+        $ins->order_by('alunos.alu_nomeArtistico', 'ASC');
+
+        $ins->no_quotes('ins_data');
+        $ins->pass_var('ins_data', 'NOW()', 'create');
+        $ins->pass_var('ins_user', $this->session->userdata('usr_id'), 'create');
+        $ins->pass_var('ins_IP', $_SERVER['REMOTE_ADDR'], 'create');
+
+        $ins->pass_default('ins_grupo', $this->session->userdata('last_grupo'));
+        $ins->pass_default('ins_aluno', $this->session->userdata('last_aluno'));
+
+        $ins->before_insert('BI_inscricao_admin', 'inscricoes_helper.php');
+        $ins->after_insert('AI_inscricao_admin', 'inscricoes_helper.php');
+        $ins->after_update('AU_inscricao_admin', 'inscricoes_helper.php');
+
+        $ins->replace_remove('INS_replace_remove', 'inscricoes_helper.php');
+
+        $ins->mask('alunos.alu_celular', '(00) 00000-0000');
+        $ins->mask('alunos.alu_cpf', '000.000.000-000');
+        $ins->validation_pattern('alunos.alu_email', 'email');
+        $ins->validation_required('alunos.alu_cpf', 1);
+
+        /*
+         * RECEBÍVEIS
+         */
+        $rec = $ins->nested_table('Recebíveis', 'ins_id', 'recebiveis', 'rec_inscricao');
+
+        $rec->set_var('replace_title', 'Recebível #{rec_id}');
+
+        $rec->table_name('Recebiveis');
+        $rec->label('rec_valor', 'Valor Bruto');
+        $rec->label('rec_valorLiquido', 'Valor Líquido');
+        $rec->label('rec_creditoUtilizado', 'Crédito Utilizado');
+        $rec->label('rec_forma', 'Forma de Pgto');
+        $rec->label('rec_dataTransacao', 'Data');
+        $rec->label('rec_dataRecebimento', 'Recebimento');
+        $rec->label('rec_recebido', 'Recebível Recebido');
+        $rec->label('rec_id', '#');
+        $rec->label('rec_parcela', 'Parcela');
+        $rec->label('rec_estornoValor', 'Total Estornado');
+        $rec->label('rec_operadoraID', 'Operadora ID');
+        $rec->label('rec_operadoraStatus', 'Operadora Status');
+
+        $rec->columns('rec_id,rec_dataTransacao,rec_creditoUtilizado,rec_forma,rec_valor,rec_valorLiquido,rec_estornoValor,rec_dataRecebimento,rec_operadoraID,rec_operadoraStatus');
+        $rec->fields('rec_id,rec_valor,rec_valorLiquido,rec_creditoUtilizado,rec_forma,rec_dataTransacao,rec_dataRecebimento,rec_recebido');
+
+        $rec->change_type('rec_valor,rec_valorLiquido', 'price', '', array(
+            'decimals' => '2',
+            'separator' => '.',
+            'point' => ','
+        ));
+
+        $rec->relation('rec_creditoUtilizado', 'alunos_creditos', 'alc_id', array(
+            'alc_id',
+            'alc_motivo'
+        ), null, null, null, ' - ', null, null);
+
+        $rec->unset_print();
+        $rec->unset_csv();
+        $rec->unset_add();
+        $rec->unset_edit();
+        $rec->unset_search();
+        $rec->unset_pagination();
+        $rec->unset_limitlist();
+        $rec->unset_remove();
+
+        /*
+         * REPASSES
+         */
+        $rre = $rec->nested_table('Repasses', 'rec_id', 'recebiveis_repasses', 'rre_recebivel');
+
+        $rre->table_name('Repasses');
+        $rre->label('rre_usuario', 'Usuário');
+        $rre->label('rre_valor', 'Valor');
+        $rre->label('repasses.rep_data', 'Consolidação');
+        $rre->label('repasses.rep_efetivado', 'PIX');
+
+        $rre->relation('rre_usuario', 'usuarios', 'usr_id', 'usr_nome');
+
+        $rre->join('rre_repasse', 'repasses', 'rep_id');
+
+        $rre->columns('rre_usuario, rre_valor, repasses.rep_data, repasses.rep_efetivado');
+
+        $rre->sum('rre_valor');
+
+        $rre->change_type('rre_valor', 'price', '', array(
+            'decimals' => '2',
+            'separator' => '.',
+            'point' => ','
+        ));
+
+        $rre->unset_print();
+        $rre->unset_csv();
+        $rre->unset_add();
+        $rre->unset_edit();
+        $rre->unset_search(true);
+        $rre->unset_pagination();
+        $rre->unset_limitlist();
+        $rre->unset_remove();
+        $rre->unset_view();
+
+        /*
+         * DISTRIBUÇÕES
+         */
         $dist = $xcrud->nested_table('Distribuição de Repasse do Grupo', 'grp_id', 'grupos_distribuicao', 'dst_grupo');
         $dist->table_name('Distribuição de Repasse');
 
@@ -141,6 +434,9 @@ class Grupos extends SYS_Controller
         $dist->unset_pagination();
         $dist->unset_limitlist();
 
+        /*
+         * FORMAS DE PAGAMENTO
+         */
         $gfp = $xcrud->nested_table('Opções de Pagamento', 'grp_id', 'grupos_formas', 'gfp_grupo');
         $gfp->table_name('Opções de Pagamento');
         $gfp->label('gfp_valorTotal', 'Valor Total');
@@ -186,6 +482,9 @@ class Grupos extends SYS_Controller
         $gfp->unset_pagination();
         $gfp->unset_limitlist();
 
+        /*
+         * DISTRIBUÇÃO DA FORMA DE PAGAMENTO
+         */
         $dist_gfp = $gfp->nested_table('Distribuição de Repasse', 'gfp_id', 'grupos_distribuicao', 'dst_forma');
         $dist_gfp->table_name('Distribuição de Repasse da Forma');
 
@@ -223,7 +522,9 @@ class Grupos extends SYS_Controller
         $dist_gfp->unset_pagination();
         $dist_gfp->unset_limitlist();
 
-        // Nested table para Taxas Adicionais
+        /*
+         * TAXAS ADICIONAIS
+         */
         $gtx = $xcrud->nested_table('Taxas Adicionais', 'grp_id', 'grupos_taxas_adicionais', 'gtx_grupo');
         $gtx->table_name('Taxas Adicionais');
         $gtx->label('gtx_valorTotal', 'Valor Total');

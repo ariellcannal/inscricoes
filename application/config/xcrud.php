@@ -105,7 +105,7 @@ class Xcrud_config
     public static $benchmark = false; // Displays information about the performance in the lower right corner.
     public static $nested_readonly_on_view = true; // turn of editing nested tables when viewing parent (can edit only when editing parent)
     public static $default_tab = false; // Sets name of tab for fields which not assigned with any tab. This tab will be created automatically. Tab will not be created when is FALSE.
-    public static $nested_in_tab = true; // Nested will be displayed in tab if tabs are active
+    public static $nested_in_tab = false; // Nested will be displayed in tab if tabs are active
     public static $relation_ajax = 5000; // number of register to trasnform relation in ajax.
     
        
