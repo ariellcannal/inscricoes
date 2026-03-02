@@ -27,7 +27,7 @@ function checkCPF() {
 				beforeSend: function() {
 					Xcrud.show_progress($(container).closest(".xcrud"));
 				},
-				timeout: (App.environment === 'production') ? 5000 : 0,
+				timeout: (App.environment === 'production') ? 30000 : 0,
 				error: function(jqXHR, textStatus, errorThrown) {
 					const message = decodeURIComponent(escape(jqXHR.statusText));
 					Xcrud.show_error(message)
