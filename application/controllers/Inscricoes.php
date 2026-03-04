@@ -324,21 +324,20 @@ class Inscricoes extends SYS_Controller
         $this->load->model('inscricoes_model');
         $this->load->helper('inscricoes_helper');
         $this->load->helper('tracking_helper');
+        
+        global $processoSeletivo;
+        $processoSeletivo = false;
+        
+        $grp_id_slug = urlencode(urldecode($grp_id_slug));
+        $this->vars['grp'] = $this->grupos_model->getBySlugOrID($grp_id_slug);
 
         if (! empty($ins_id) && ! $ins = $this->inscricoes_model->getInscricaoCompleta($ins_id)) {
-            set_status_header(401, lang('error_inscricao_nao_encontrada'));
-            return;
+            redirect('/inscricao/' . $this->vars['grp']['grp_slug'] . '?redirect=true', 301);
         }
         if (ENVIRONMENT != "development" && ! empty($ins['ins_valorDevido']) && (int) $ins['ins_valorDevido'] <= 0) {
             set_status_header(401, lang('error_inscricao_quitada'));
             return;
         }
-
-        global $processoSeletivo;
-        $processoSeletivo = false;
-
-        $grp_id_slug = urlencode(urldecode($grp_id_slug));
-        $this->vars['grp'] = $this->grupos_model->getBySlugOrID($grp_id_slug);
 
         if (! $this->vars['grp']) {
             set_status_header(404, lang('error_ultimas_vagas_tente_novamente'));
