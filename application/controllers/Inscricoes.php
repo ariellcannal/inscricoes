@@ -78,7 +78,7 @@ class Inscricoes extends SYS_Controller
         $xcrud->highlight_row('ins_valorDevido', '<=', '0', null, 'table-success');
         $xcrud->highlight_row('ins_status', '=', 'Cancelada', null, 'table-danger');
 
-        $xcrud->columns('ins_id,ins_status,ins_grupo,ins_data,alunos.alu_nomeArtistico,alunos.alu_email,alunos.alu_celular,ins_forma,ins_valorDesconto,ins_motivoDesconto,ins_valorModulo,ins_valorTotalPago,ins_valorDevido');
+        $xcrud->columns('ins_id,ins_status,ins_grupo,ins_data,alunos.alu_nomeArtistico,ins_valorDesconto,ins_motivoDesconto,ins_valorModulo,ins_valorTotalPago,ins_valorDevido,ins_forma,alunos.alu_email,alunos.alu_celular');
         $xcrud->sum('ins_valorTotalPago,ins_valorModulo,ins_valorDevido');
 
         $xcrud->fields('ins_grupo,ins_forma,ins_aluno,ins_valorDesconto,ins_motivoDesconto,ins_comentario', null, null, 'create');
