@@ -5,6 +5,9 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#084c6e">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<?php if(config_item('recaptcha_key')): ?>
+<meta name="google-recaptcha-key" content="<?php echo htmlspecialchars(config_item('recaptcha_key'), ENT_QUOTES, 'UTF-8'); ?>">
+<?php endif; ?>
 <link href="<?php echo site_url('/writable/logos/CANNAL_SIMB_POS192x192.png');?>" rel="icon" media="(prefers-color-scheme: light)">
 <link href="<?php echo site_url('/writable/logos/CANNAL_SIMB_NEG192x192.png');?>" rel="icon" media="(prefers-color-scheme: dark)">
 <title>Inscrições - CANNAL</title>

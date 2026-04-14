@@ -98,49 +98,21 @@ $(document).ready(function() {
 	$('#navbarSideCollapse').click(function() {
 		$('.offcanvas-collapse').toggleClass('open');
 	});
-	/*RECAPTCHA*/
-	if (typeof App !== 'undefined' && App.environment == 'production' && App?.recaptcha) {
+	
+	/*RECAPTCHA - Apenas carregado em páginas específicas com o atributo data-recaptcha*/
+	// O script do recaptcha é carregado dinamicamente por página
+	if (typeof grecaptcha !== 'undefined') {
 		$('*[data-recaptcha]').click(function(e) {
 			e.preventDefault();
-			grecaptcha.enterprise.ready(async () => {
-				const token = await grecaptcha.enterprise.execute(App.recaptcha, { action: $(this).data('recaptcha') });
-			});
-		});
-	}
-	/*PIXEL*/
-	if (typeof App !== 'undefined' && App.environment == 'production' && App?.pixel) {
-		!function(f, b, e, v, n, t, s) {
-			if (f.fbq) return; n = f.fbq = function() {
-				n.callMethod ?
-					n.callMethod.apply(n, arguments) : n.queue.push(arguments)
-			};
-			if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
-			n.queue = []; t = b.createElement(e); t.async = !0;
-			t.src = 'https://connect.facebook.net/en_US/fbevents.js';
-			s = b.getElementsByTagName(e)[0];
-			s.parentNode.insertBefore(t, s)
-		}(window, document, 'script');
-
-		$(window).on('scroll', function() {
-			if (!viewContent && ($(window).scrollTop() + $(window).height() >= $(document).height())) {
-				viewContent = true;
-				fbq('track', 'ViewContent');
+			const action = $(this).data('recaptcha');
+			const recaptchaKey = $('meta[name="google-recaptcha-key"]').attr('content');
+			
+			if (recaptchaKey) {
+				grecaptcha.enterprise.ready(async () => {
+					const token = await grecaptcha.enterprise.execute(recaptchaKey, { action: action });
+					// Aqui você pode enviar o token via AJAX ou formulário
+				});
 			}
 		});
-		setTimeout(function() {
-			if (!viewContent) {
-				viewContent = true;
-				fbq('track', 'ViewContent');
-			}
-		}, 5000);
-		fbq('init', App.pixel);
-		fbq('track', 'PageView');
-	}
-	/*ANALYTICS*/
-	if (typeof App !== 'undefined' && App.environment == 'production' && App?.analytics) {
-		window.dataLayer = window.dataLayer || [];
-		function gtag() { dataLayer.push(arguments); }
-		gtag('js', new Date());
-		gtag('config', App.analytics);
 	}
 });

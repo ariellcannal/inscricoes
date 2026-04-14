@@ -299,13 +299,6 @@ class SYS_Controller extends CI_Controller
          */
         $this->assets->css('xcrud.css');
 
-        /*
-         * reCAPTCHA
-         */
-        if (config_item('recaptcha_key') && ENVIRONMENT == 'production') {
-            $this->assets->js('https://www.google.com/recaptcha/enterprise.js?render=' . config_item('recaptcha_key'), true);
-        }
-
         $this->assets->css('app.css');
         $this->assets->js('meta.js');
         $this->assets->js('app.js');

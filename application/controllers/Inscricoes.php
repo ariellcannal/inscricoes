@@ -316,7 +316,11 @@ class Inscricoes extends SYS_Controller
         $this->assets->js('card.js');
         $this->assets->js('inscricoes_aluno.js');
         $this->assets->js('tracking.js');
-        $this->assets->inline('recaptcha', config_item('recaptcha_key'));
+        
+        // Carregar reCAPTCHA apenas nesta página pública
+        if (config_item('recaptcha_key') && ENVIRONMENT == 'production') {
+            $this->assets->js('https://www.google.com/recaptcha/enterprise.js?render=' . config_item('recaptcha_key'), true);
+        }
 
         $this->load->model('grupos_model');
         $this->load->model('alunos_model');
