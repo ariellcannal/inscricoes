@@ -20,7 +20,6 @@ class RepassesLib
             $this->CI->load->model('repasses_model');
             $this->CI->load->library('controllers/TransacoesLib', null, 'transacoes');
             
-            $this->CI->transacoes->sincronizar(null, 7, false);
             $this->CI->repasses_model->consolidar();
         }
     }
