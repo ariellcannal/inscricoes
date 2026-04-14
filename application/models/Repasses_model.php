@@ -177,9 +177,9 @@ class Repasses_model extends SYS_Model
         $this->db->join('recebiveis', 'rre_recebivel = rec_id');
         $this->db->where('rre_repasse', null);
         if (! $this->retencaoRepasse) {
-            $this->db->where('rec_dataTransacao <', date('Y-m-d', strtotime('- ' . $this->retencaoRepasse . ' days')) . ' 00:00:00');
+            $this->db->where('rec_dataTransacao <', date('Y-m-d H:i:s', strtotime('- ' . $this->retencaoRepasse . ' days')) . ' 00:00:00');
         }
-        // $query = $this->db->get_compiled_select();exit($query);
+        //$query = $this->db->get_compiled_select('recebiveis_repasses');
         $rre = $this->db->get('recebiveis_repasses')->result_array();
         foreach ($rre as $row) {
             $t[$row['rre_usuario']][$row['rre_id']] = $row['rre_valor'];
