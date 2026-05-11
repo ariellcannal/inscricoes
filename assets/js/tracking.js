@@ -14,10 +14,16 @@ var Tracking = (function() {
     
     var initialized = false;
     var events = {
-        viewContent: false,
+        pageView: false,
+        lead: false,
         initiateCheckout: false,
-        addPaymentInfo: false
+        addPaymentInfo: false,
+        purchase: false
     };
+    
+    function isProduction() {
+        return (typeof App !== 'undefined' && App.environment === 'production') || (typeof App === 'undefined');
+    }
     
     /**
      * Inicializa o módulo de tracking
@@ -32,30 +38,117 @@ var Tracking = (function() {
         } else {
             bindEvents();
         }
+
+        if (typeof jQuery !== 'undefined') {
+            $(document).on('xcrudafterrequest xcrudinit', bindEvents);
+        }
     }
     
     /**
      * Vincula eventos aos elementos do formulário
      */
     function bindEvents() {
-        // Evento InitiateCheckout - quando CPF é validado
+        // PageView
+        trackPageView();
+        
+        // Evento Lead - quando CPF é validado
         var cpfInput = document.getElementById('alu_cpf');
         if (cpfInput) {
-            cpfInput.addEventListener('blur', function() {
-                if (this.value && !this.classList.contains('is-invalid')) {
+            cpfInput.removeEventListener('blur', cpfBlurHandler);
+            cpfInput.addEventListener('blur', cpfBlurHandler);
+        }
+        
+        // Evento InitiateCheckout - quando select2 de fop é clicado
+        var fopSelect = document.getElementById('fop');
+        if (fopSelect) {
+            if (typeof jQuery !== 'undefined') {
+                $(fopSelect).off('select2:open.tracking');
+                $(fopSelect).on('select2:open.tracking', function() {
                     trackInitiateCheckout();
-                }
+                });
+            }
+            fopSelect.removeEventListener('change', paymentChangeHandler);
+            fopSelect.addEventListener('change', paymentChangeHandler);
+        }
+        
+        // Trigger purchase if elements are present (PIX or success message)
+        var pixCard = document.querySelector('.card.text-center.border-primary');
+        var successAlert = document.querySelector('.alert.alert-success');
+        if (pixCard || (successAlert && successAlert.textContent.includes('Inscrição realizada'))) {
+            trackPurchase();
+        }
+    }
+
+    function cpfBlurHandler() {
+        if (this.value && !this.classList.contains('is-invalid')) {
+            trackLead();
+        }
+    }
+
+    function paymentChangeHandler() {
+        if (this.value) {
+            var paymentType = getPaymentType(this.value);
+            trackAddPaymentInfo(paymentType);
+        }
+    }
+    
+    /**
+     * Dispara evento PageView
+     */
+    function trackPageView() {
+        if (events.pageView) return;
+        events.pageView = true;
+        
+        if (!isProduction()) return;
+        
+        // Meta Pixel
+        if (typeof fbq !== 'undefined') {
+            fbq('track', 'PageView');
+        }
+        
+        // Google Analytics
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'page_view');
+        }
+    }
+    
+    /**
+     * Dispara evento Lead
+     */
+    function trackLead() {
+        if (events.lead) return;
+        events.lead = true;
+        
+        if (!isProduction()) return;
+        
+        // Dados do grupo (devem estar disponíveis globalmente)
+        if (typeof window.trackingData === 'undefined') return;
+        
+        var data = window.trackingData;
+        
+        // Meta Pixel
+        if (typeof fbq !== 'undefined' && data.pixel) {
+            fbq('track', 'Lead', {
+                content_name: data.content_name,
+                content_ids: [data.content_id],
+                content_type: 'product',
+                value: data.value,
+                currency: 'BRL',
+                num_items: 1
             });
         }
         
-        // Evento AddPaymentInfo - quando forma de pagamento é selecionada
-        var fopSelect = document.getElementById('fop');
-        if (fopSelect) {
-            fopSelect.addEventListener('change', function() {
-                if (this.value) {
-                    var paymentType = getPaymentType(this.value);
-                    trackAddPaymentInfo(paymentType);
-                }
+        // Google Analytics
+        if (typeof gtag !== 'undefined' && data.analytics) {
+            gtag('event', 'generate_lead', {
+                currency: 'BRL',
+                value: data.value,
+                items: [{
+                    item_id: data.content_id,
+                    item_name: data.content_name,
+                    price: data.value,
+                    quantity: 1
+                }]
             });
         }
     }
@@ -67,7 +160,7 @@ var Tracking = (function() {
         if (events.initiateCheckout) return;
         events.initiateCheckout = true;
         
-        if (App.environment !== 'production') return;
+        if (!isProduction()) return;
         
         // Dados do grupo (devem estar disponíveis globalmente)
         if (typeof window.trackingData === 'undefined') return;
@@ -109,7 +202,7 @@ var Tracking = (function() {
         if (events.addPaymentInfo) return;
         events.addPaymentInfo = true;
         
-        if (App.environment !== 'production') return;
+        if (!isProduction()) return;
         
         if (typeof window.trackingData === 'undefined') return;
         
@@ -143,6 +236,53 @@ var Tracking = (function() {
     }
     
     /**
+     * Dispara evento Purchase
+     */
+    function trackPurchase() {
+        if (events.purchase) return;
+        events.purchase = true;
+        
+        if (!isProduction()) return;
+        
+        if (typeof window.trackingData === 'undefined' || typeof window.transactionId === 'undefined') return;
+        
+        var data = window.trackingData;
+        var transactionId = window.transactionId;
+        
+        // Meta Pixel
+        if (typeof fbq !== 'undefined' && data.pixel) {
+            fbq('track', 'Purchase', {
+                value: data.value,
+                currency: 'BRL',
+                content_name: data.content_name,
+                content_ids: [data.content_id],
+                content_type: 'product',
+                contents: [{
+                    id: data.content_id,
+                    quantity: 1,
+                    item_price: data.value
+                }],
+                num_items: 1
+            });
+        }
+        
+        // Google Analytics
+        if (typeof gtag !== 'undefined' && data.analytics) {
+            gtag('event', 'purchase', {
+                transaction_id: transactionId,
+                value: data.value,
+                currency: 'BRL',
+                items: [{
+                    item_id: data.content_id,
+                    item_name: data.content_name,
+                    price: data.value,
+                    quantity: 1
+                }]
+            });
+        }
+    }
+    
+    /**
      * Extrai tipo de pagamento da forma selecionada
      * @param {string} fopValue - Valor do select de forma de pagamento
      * @returns {string} - 'pix' ou 'credit_card'
@@ -160,12 +300,12 @@ var Tracking = (function() {
     // API pública
     return {
         init: init,
+        trackLead: trackLead,
         trackInitiateCheckout: trackInitiateCheckout,
-        trackAddPaymentInfo: trackAddPaymentInfo
+        trackAddPaymentInfo: trackAddPaymentInfo,
+        trackPurchase: trackPurchase
     };
 })();
 
 // Inicializar automaticamente
-if (typeof App !== 'undefined') {
-    Tracking.init();
-}
+Tracking.init();

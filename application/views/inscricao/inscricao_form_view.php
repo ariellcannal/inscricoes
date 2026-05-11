@@ -10,6 +10,11 @@ if (ENVIRONMENT === 'production' && $transacao instanceof Transacao) {
     $transaction_id = $transacao->getOperadoraId() ?: $transacao->getId();
     echo track_event_purchase($grp, $transacao, $transaction_id);
 }
+?>
+<script>
+window.transactionId = '<?php echo $transaction_id; ?>';
+</script>
+<?php
 
 if ($processoSeletivo && ! $capture) {
     ?>

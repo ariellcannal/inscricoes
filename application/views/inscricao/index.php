@@ -31,9 +31,9 @@ else if($grp['grp_dataInicio']=="" && $grp['grp_dataFim'] !=""){
 
 	<main class="container">
 		<div class="alert alert-primary" role="alert">
-          <?php echo $subtitulo?>. <?php echo $grp['grp_diaSemana'].', das '.$grp['grp_horaInicio'].' às '.$grp['grp_horaFim']?>.
-          <?php echo $grp['grp_descricao']!=''?'<br/>'.nl2br($grp['grp_descricao']):''?>
-          <?php echo $grp['grp_emailFaleConosco']!=''?'<br/>'.'Se precisa de maiores informações você pode nos contatar através do e-mail <a href="mailto:'.$grp['grp_emailFaleConosco'].'">'.$grp['grp_emailFaleConosco'].'</a>':''?>
+          <p><strong><?php echo $subtitulo?>. <?php echo $grp['grp_diaSemana'].', das '.$grp['grp_horaInicio'].' às '.$grp['grp_horaFim']?>.</strong></p>
+          <p><?php echo $grp['grp_descricao']!=''?nl2br($grp['grp_descricao']):''?></p>
+          <p><?php echo $grp['grp_emailFaleConosco']!=''?'Se precisa de maiores informações você pode nos contatar através do e-mail <a href="mailto:'.$grp['grp_emailFaleConosco'].'">'.$grp['grp_emailFaleConosco'].'</a>':''?></p>
         </div>
 	<?php echo $conteudo?>
 	</main>

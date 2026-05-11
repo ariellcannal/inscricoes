@@ -54,12 +54,22 @@ class Assets
     {
         $out = '';
         if (! empty($this->js_inline)) {
-            $out .= "<script>";
             foreach ($this->js_inline as $namespace => $attr) {
-                $out .= 'window.' . $namespace . ' = window.' . $namespace . ' || {};';
-                $out .= $namespace.' = ' . json_encode($attr) . ';';                
+                $data = [];
+                foreach ($attr as $key => $value) {
+                    if (is_string($value) && preg_match('/<\/?script\b|<noscript\b/i', $value)) {
+                        $out .= $value;
+                    } else {
+                        $data[$key] = $value;
+                    }
+                }
+                if (! empty($data)) {
+                    $out .= "<script>";
+                    $out .= 'window.' . $namespace . ' = window.' . $namespace . ' || {};';
+                    $out .= $namespace . ' = ' . json_encode($data) . ';';
+                    $out .= "</script>";
+                }
             }
-            $out .= "</script>";
         }
         if ($return) {
             return $out;
