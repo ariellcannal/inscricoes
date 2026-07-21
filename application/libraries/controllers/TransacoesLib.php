@@ -55,7 +55,7 @@ class TransacoesLib
             $operadora = new OperadorasEntity($this->CI->operadoras_model->getRow($transacao->getOperadora()));
             $class = ucfirst($operadora->getInterface());
             $class = "CANNALPagamentos\\Interfaces\\" . $class;
-            if (ENVIRONMENT == 'production' || FORCE_OPERADORA_PRODUCTION === TRUE) {
+            if (ENVIRONMENT == 'production' || getenv('FORCE_OPERADORA_PRODUCTION') == TRUE) {
                 $interface = new $class($operadora->getProductionKey(), $operadora->getNome());
             } else {
                 $interface = new $class($operadora->getDevelopmentKey(), $operadora->getNome());

@@ -54,10 +54,6 @@ class SYS_Controller extends CI_Controller
             $this->setAssets();
         }
 
-        if (ENVIRONMENT == 'development') {
-            define('FORCE_OPERADORA_PRODUCTION', false);
-        }
-
         if ($this->input->is_ajax_request()) {
             $html_errors = false;
         } else {

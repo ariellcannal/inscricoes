@@ -74,14 +74,17 @@ class RecebiveisLib
 
             $operadora = new OperadorasEntity($this->CI->operadoras_model->getRow($recebivel->getOperadora()));
             $class = "CANNALPagamentos\\Interfaces\\" . ucfirst($operadora->getInterface());
-            if (ENVIRONMENT == 'production' || FORCE_OPERADORA_PRODUCTION === TRUE) {
+            if (ENVIRONMENT == 'production' || getenv('FORCE_OPERADORA_PRODUCTION') == TRUE) {
                 $interface = new $class($operadora->getProductionKey(), $operadora->getNome());
             } else {
                 $interface = new $class($operadora->getDevelopmentKey(), $operadora->getNome());
             }
-            $recebiveis_operadora = $interface->getReceivables($charge_id ? $charge_id : $recebivel->getOperadoraID(), $recebivel->getParcela());
+            $recebiveis_operadora = $interface->getReceivables($charge_id ? $charge_id : $recebivel->getOperadoraID());
             if ($recebiveis_operadora) {
                 foreach ($recebiveis_operadora as $recebivel_operadora) {
+                    if($recebivel_operadora->getParcela() != $recebivel->getParcela()) {
+                        continue;
+                    }
                     $recebivel->import($recebivel_operadora->toArray(false));
                     $recebivel->setValor($recebivel_operadora->getValor())
                         ->setValorLiquido($recebivel_operadora->getValorLiquido());

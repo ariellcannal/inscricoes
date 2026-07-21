@@ -40,7 +40,7 @@ class AlunosLib
 
                 if ($cli->getIdOperadora()) {
                     $class = "CANNALPagamentos\\Interfaces\\" . ucfirst($opr->getInterface());
-                    if (ENVIRONMENT == 'production' || FORCE_OPERADORA_PRODUCTION === TRUE) {
+                    if (ENVIRONMENT == 'production' || getenv('FORCE_OPERADORA_PRODUCTION') == TRUE) {
                         $interface = new $class($opr->getProductionKey(), $opr->getNome(), $this->CI->logger);
                     } else {
                         $interface = new $class($opr->getDevelopmentKey(), $opr->getNome(), $this->CI->logger);
