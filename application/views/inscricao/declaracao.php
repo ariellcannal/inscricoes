@@ -1,10 +1,25 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
-setlocale(LC_ALL, 'pt_BR');
 
-$periodo = $grp['grp_encontros'] . ' encontros';
+$meses = array(
+    1 => 'janeiro',
+    2 => 'fevereiro',
+    3 => 'março',
+    4 => 'abril',
+    5 => 'maio',
+    6 => 'junho',
+    7 => 'julho',
+    8 => 'agosto',
+    9 => 'setembro',
+    10 => 'outubro',
+    11 => 'novembro',
+    12 => 'dezembro',
+);
+$dataCabecalho = date('d') . ' de ' . $meses[(int) date('n')] . ' de ' . date('Y');
+
+$periodo = '';
 if ($grp['grp_dataInicio'] != "" && $grp['grp_dataFim'] != "") {
-    $periodo .= ', entre ' . date('d/m/Y', strtotime($grp['grp_dataInicio'])) . ' e ' . date('d/m/Y', strtotime($grp['grp_dataFim']));
+    $periodo .= ', entre ' . $grp['grp_dataInicio'] . ' e ' . $grp['grp_dataFim'];
 }
 
 ?>
@@ -20,7 +35,7 @@ if ($grp['grp_dataInicio'] != "" && $grp['grp_dataFim'] != "") {
 <body class="declaracao">
 	<header>
 		<img src="<?php echo site_url('/writable/logos/CANNAL_POS_SM.png')?>" style="height: 60px;">
-		<p>São Paulo, <?php echo date('d \d\e F \d\e Y')?></p>
+		<p>São Paulo, <?php echo $dataCabecalho?></p>
 		<h1>DECLARAÇÃO</h1>
 	</header>
 	<section>

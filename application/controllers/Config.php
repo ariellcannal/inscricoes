@@ -68,7 +68,7 @@ class Config extends SYS_Controller
     /**
      * Importa o banco de produção para desenvolvimento.
      *
-     * Abre túnel SSH, gera dump e importa no banco de desenvolvimento.
+     * Abre túnel SSH, gera dump compactado e importa simultaneamente via Pipeline em RAM.
      *
      * @return void
      */
@@ -78,6 +78,10 @@ class Config extends SYS_Controller
         if (ENVIRONMENT !== 'development') {
             show_404();
         }
+
+        // Aumenta o tempo limite e memória do PHP para evitar interrupções em bancos grandes
+        set_time_limit(0);
+        ini_set('memory_limit', '512M');
 
         $prod = array(
             'hostname' => getenv('db.prd.hostname'),
@@ -98,46 +102,45 @@ class Config extends SYS_Controller
             'database' => getenv('db.dev.database')
         );
 
-        // Define nome e caminho do arquivo de dump
-        $fileName = date('Y.m.d-H.i-') . $prod['database'] . '.sql';
+        $fileName = date('Y.m.d-H.i-') . $prod['database'] . '.sql.gz';
         $filePath = FCPATH . 'sql/' . $fileName;
 
-        $sshDumpCmd = sprintf(
+        // =========================================================================
+        // OTIMIZAÇÃO EXTREMA: Pipeline Único
+        // 1. Gera dump e compacta na origem (nível 3 para focar em velocidade de CPU)
+        // 2. Transmite via rede
+        // 3. 'tee' intercepta o pacote e salva uma cópia no disco ($filePath)
+        // 4. Simultaneamente, descompacta em RAM e injeta direto no MySQL local
+        // =========================================================================
+        
+        $pipelineCmd = sprintf(
             'ssh -i %s -p %s %s@%s ' .
             escapeshellarg(
-            // este é o comando que roda NO REMOTO:
-            'mysqldump -h127.0.0.1 -P3306 -u' . escapeshellarg($prod['username']) .
-            ' --ssl-mode=REQUIRED --set-gtid-purged=OFF --password=' . escapeshellarg($prod['password']) . ' ' .
-            escapeshellarg($prod['database'])
+                'mysqldump -h127.0.0.1 -u' . escapeshellarg($prod['username']) .
+                ' --password=' . escapeshellarg($prod['password']) .
+                ' --ssl-mode=REQUIRED --set-gtid-purged=OFF --quick --single-transaction --routines --triggers ' . 
+                escapeshellarg($prod['database']) . ' | gzip -3 -c'
             ) .
-            ' > %s',
+            ' | tee %s | gunzip -c | mysql -h%s -u%s --password=%s %s',
             escapeshellarg(FCPATH . $prod['ssh_key']),
             escapeshellarg($prod['ssh_port']),
             escapeshellarg($prod['ssh_user']),
             escapeshellarg($prod['ssh_host']),
-            escapeshellarg($filePath)
-            );
-        exec($sshDumpCmd, $dumpOutput, $dumpStatus);
-        if ($dumpStatus !== 0) {
-            throw new Error('Falha ao gerar dump do banco de produção (via SSH).');
-        }
-        
-        // Importa dump no banco de desenvolvimento
-        $importCmd = sprintf(
-            'mysql -h%s -u%s --password=%s %s < %s',
+            escapeshellarg($filePath),
             escapeshellarg($dev['hostname']),
             escapeshellarg($dev['username']),
             escapeshellarg($dev['password']),
-            escapeshellarg($dev['database']),
-            escapeshellarg($filePath)
+            escapeshellarg($dev['database'])
         );
-        exec($importCmd, $importOutput, $importStatus);
-        if ($importStatus !== 0) {
-            throw new Error('Falha ao importar dump no banco de desenvolvimento.');
+
+        exec($pipelineCmd, $output, $status);
+
+        if ($status !== 0) {
+            throw new Error('Falha ao importar o banco de dados em modo Pipeline. Código de Saída: ' . $status);
         }
         
         // Informa sucesso e retorna à tela de ações
-        $_SESSION['alert_success'][] = 'Banco de produção importado.';
+        $_SESSION['alert_success'][] = 'Banco de produção importado com sucesso (Alta Velocidade).';
         redirect('/config/acoes');
     }
 

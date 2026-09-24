@@ -13,6 +13,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 $hook['pre_system'][] = array(
+    'class'    => 'DeployMaintenanceHook',
+    'function' => 'handle',
+    'filename' => 'DeployMaintenanceHook.php',
+    'filepath' => 'hooks'
+);
+
+$hook['pre_system'][] = array(
     'class'    => 'CsrfHook',
     'function' => 'add_token_from_header',
     'filename' => 'CsrfHook.php',

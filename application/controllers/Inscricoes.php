@@ -815,6 +815,13 @@ class Inscricoes extends SYS_Controller
         return $this->inscricoes->reprovar($ins_id);
     }
 
+    public function declaracao($ins_id)
+    {
+        $this->checkLogin();
+        $this->load->helper('inscricoes');
+        return enviar_declaracao(null, $ins_id, true);
+    }
+
     public function totalizar()
     {
         $this->checkLogin();

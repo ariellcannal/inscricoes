@@ -62,7 +62,7 @@ class RepassesLib
         $this->CI->load->model('recebiveis_model');
         $this->CI->load->model('repasses_model');
         $this->CI->load->model('usuarios_model');
-        $this->CI->vars['months'] = 3;
+        $this->CI->vars['months'] = 8;
         $this->CI->vars['usr'] = $this->CI->usuarios_model->getUsuario($usr_id);
         $this->CI->vars['pendentes'] = $this->CI->repasses_model->getRepassesPorUsuario($usr_id, null, false);
         $this->CI->vars['pagos'] = $this->CI->repasses_model->getRepassesPorUsuario($usr_id, date('Y-m-d', strtotime('-' . $this->CI->vars['months'] . ' months')) . ' 00:00:00', false, 'DESC');

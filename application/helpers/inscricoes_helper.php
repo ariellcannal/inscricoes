@@ -290,7 +290,7 @@ if (! function_exists('enviar_declaracao')) {
         $resultado = $resultado - ($min_ponto * 60);
         $tempo = $hora_ponto;
         $vars['carga_horaria'] = $tempo * $vars['grp']['grp_encontros'];
-        $vars['title'] = 'Declaração - ' . $vars['alu']['alu_nomeArtistico'] . ' - ' . $vars['grp']['grp_nomePublico'] . ' - Grupo TAPA';
+        $vars['title'] = 'Declaração - ' . $vars['alu']['alu_nomeArtistico'] . ' - ' . $vars['grp']['grp_nomePublico'];
         $html = $ci->load->view('inscricao/declaracao.php', $vars, true);
 
         $dompdf_options = new Options();
